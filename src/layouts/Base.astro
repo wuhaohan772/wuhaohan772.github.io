@@ -27,7 +27,9 @@ const description = site.tagline;
             e.target.classList.toggle("is-visible", e.isIntersecting);
           }
         },
-        { threshold: 0.1 },
+        // bottom margin pulls the trigger line up from the viewport edge, so
+        // scrolling back up fades rows out while they're still on screen
+        { threshold: 0, rootMargin: "0px 0px -18% 0px" },
       );
       document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
     </script>
