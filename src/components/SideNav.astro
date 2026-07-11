@@ -6,74 +6,77 @@ const sections = [
 ];
 ---
 
-<nav class="side" aria-label="Sections">
-  {
-    sections.map((s) => (
-      <a href={`#${s.id}`} data-section={s.id}>
-        <span class="dot" />
-        {s.label}
-      </a>
-    ))
-  }
-</nav>
+<div class="rail-anchor">
+  <nav class="side" aria-label="Sections">
+    {
+      sections.map((s) => (
+        <a href={`#${s.id}`} data-section={s.id}>
+          <span class="dot" />
+          {s.label}
+        </a>
+      ))
+    }
+  </nav>
+</div>
 
 <script>
-  const side = document.querySelector(".side")!;
-  const hero = document.querySelector("#top");
   const links = [...document.querySelectorAll<HTMLAnchorElement>(".side a")];
+  const secs = links
+    .map((a) => document.getElementById(a.dataset.section!))
+    .filter((s): s is HTMLElement => s !== null);
 
-  // rail appears only once the landing card is mostly gone
-  if (hero) {
-    new IntersectionObserver(
-      ([e]) => side.classList.toggle("visible", !e.isIntersecting),
-      { threshold: 0.6 },
-    ).observe(hero);
+  // active = last section whose top has passed the 45% viewport line;
+  // at page bottom force the last section (short sections can't reach the line)
+  function update() {
+    if (secs.length === 0) return;
+    const line = innerHeight * 0.45;
+    let active = secs[0].id;
+    for (const s of secs) {
+      if (s.getBoundingClientRect().top <= line) active = s.id;
+    }
+    if (Math.ceil(scrollY + innerHeight) >= document.body.scrollHeight - 2) {
+      active = secs[secs.length - 1].id;
+    }
+    for (const a of links) {
+      a.classList.toggle("active", a.dataset.section === active);
+    }
   }
 
-  // scroll-spy: active = section crossing the upper-middle band of viewport
-  const spy = new IntersectionObserver(
-    (entries) => {
-      for (const e of entries) {
-        if (e.isIntersecting) {
-          for (const a of links) {
-            a.classList.toggle(
-              "active",
-              a.dataset.section === (e.target as HTMLElement).id,
-            );
-          }
-        }
+  let ticking = false;
+  addEventListener(
+    "scroll",
+    () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(() => {
+          update();
+          ticking = false;
+        });
       }
     },
-    { rootMargin: "-35% 0px -55% 0px" },
+    { passive: true },
   );
-  for (const a of links) {
-    const sec = document.getElementById(a.dataset.section!);
-    if (sec) spy.observe(sec);
-  }
+  update();
 </script>
 
 <style>
+  /* in flow just above Projects: rail enters alongside the Projects heading,
+     travels up with scroll, then locks at the vertical center */
+  .rail-anchor {
+    position: sticky;
+    top: 45vh;
+    height: 0;
+    z-index: 20;
+  }
+
   .side {
-    position: fixed;
+    position: absolute;
     left: clamp(0.75rem, 2vw, 2rem);
-    top: 50%;
-    transform: translateY(-50%) translateX(-0.5rem);
+    top: 0;
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
     font-size: var(--text-sm);
-    opacity: 0;
-    pointer-events: none;
-    transition:
-      opacity 0.35s ease-out,
-      transform 0.35s ease-out;
-    z-index: 20;
-  }
-
-  .side.visible {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateY(-50%);
   }
 
   .side a {
@@ -103,14 +106,8 @@ const sections = [
     border-color: var(--color-accent);
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .side {
-      transition: none;
-    }
-  }
-
   @media (max-width: 1100px) {
-    .side {
+    .rail-anchor {
       display: none;
     }
   }
