@@ -3,45 +3,45 @@ import experience from "../data/experience.json";
 import education from "../data/education.json";
 ---
 
-<section id="experience">
-  <div class="container">
-    <h2 class="reveal">Experience</h2>
-    <ul>
-      {
-        experience.map((e) => (
-          <li class="reveal">
-            <span class="period">{e.period}</span>
-            <div>
-              <p class="head">
-                {e.role} — <span class="org">{e.org}</span>
-              </p>
-              <p class="notes">{e.notes}</p>
-            </div>
-          </li>
-        ))
-      }
-    </ul>
-  </div>
-</section>
+<section class="cv">
+  <div class="container columns">
+    <div id="experience">
+      <h2 class="reveal">Experience</h2>
+      <ul>
+        {
+          experience.map((e) => (
+            <li class="reveal">
+              <span class="period">{e.period}</span>
+              <div>
+                <p class="head">
+                  {e.role} — <span class="org">{e.org}</span>
+                </p>
+                <p class="notes">{e.notes}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
 
-<section id="education">
-  <div class="container">
-    <h2 class="reveal">Education</h2>
-    <ul>
-      {
-        education.map((e) => (
-          <li class="reveal">
-            <span class="period">{e.period}</span>
-            <div>
-              <p class="head">
-                {e.degree} — <span class="org">{e.org}</span>
-              </p>
-              <p class="notes">{e.notes}</p>
-            </div>
-          </li>
-        ))
-      }
-    </ul>
+    <div id="education">
+      <h2 class="reveal">Education</h2>
+      <ul>
+        {
+          education.map((e) => (
+            <li class="reveal">
+              <span class="period">{e.period}</span>
+              <div>
+                <p class="head">
+                  {e.degree} — <span class="org">{e.org}</span>
+                </p>
+                <p class="notes">{e.notes}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
   </div>
 </section>
 
@@ -49,6 +49,13 @@ import education from "../data/education.json";
   section {
     padding-block: var(--space-5);
     border-bottom: 1px solid var(--color-border);
+  }
+
+  .columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-5);
+    align-items: start;
   }
 
   h2 {
@@ -65,8 +72,8 @@ import education from "../data/education.json";
 
   li {
     display: grid;
-    grid-template-columns: 8rem 1fr;
-    gap: var(--space-3);
+    grid-template-columns: 7rem 1fr;
+    gap: var(--space-2);
     padding-block: var(--space-3);
     border-top: 1px solid var(--color-border);
   }
@@ -90,6 +97,12 @@ import education from "../data/education.json";
     font-size: var(--text-sm);
     color: var(--color-secondary);
     max-width: var(--measure);
+  }
+
+  @media (max-width: 900px) {
+    .columns {
+      grid-template-columns: 1fr;
+    }
   }
 
   @media (max-width: 640px) {

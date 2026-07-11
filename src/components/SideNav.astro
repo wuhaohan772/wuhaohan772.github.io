@@ -25,17 +25,20 @@ const sections = [
     .map((a) => document.getElementById(a.dataset.section!))
     .filter((s): s is HTMLElement => s !== null);
 
-  // active = last section whose top has passed the 45% viewport line;
-  // at page bottom force the last section (short sections can't reach the line)
+  // active = last section whose top has passed the 45% viewport line.
+  // education sits beside experience (same scroll top), so it is excluded
+  // from the line rule and activates only at page bottom.
   function update() {
     if (secs.length === 0) return;
     const line = innerHeight * 0.45;
     let active = secs[0].id;
     for (const s of secs) {
-      if (s.getBoundingClientRect().top <= line) active = s.id;
+      if (s.id !== "education" && s.getBoundingClientRect().top <= line) {
+        active = s.id;
+      }
     }
     if (Math.ceil(scrollY + innerHeight) >= document.body.scrollHeight - 2) {
-      active = secs[secs.length - 1].id;
+      active = "education";
     }
     for (const a of links) {
       a.classList.toggle("active", a.dataset.section === active);
