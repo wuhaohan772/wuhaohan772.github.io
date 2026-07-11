@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&display=swap");
 
 /* Design tokens — from design-system/haohan-wu-personal-site/MASTER.md
    (Exaggerated Minimalism: monochrome + blue accent, spacious) */
@@ -10,7 +10,7 @@
   --color-muted: #e8ecf0;
   --color-border: #e4e4e7;
 
-  --font-sans: "Manrope", system-ui, -apple-system, sans-serif;
+  --font-sans: "Hanken Grotesk", system-ui, -apple-system, sans-serif;
 
   /* type scale — display sizes clamp hard, everything else stays modest */
   --text-display: clamp(3rem, 11vw, 9rem);
