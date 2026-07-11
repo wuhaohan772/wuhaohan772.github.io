@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Work+Sans:wght@100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Work+Sans:wght@100..900&family=DM+Mono:wght@300;400&display=swap");
 
 /* Design tokens — from design-system/haohan-wu-personal-site/MASTER.md
    (Exaggerated Minimalism: monochrome + blue accent, spacious) */
@@ -11,6 +11,8 @@
   --color-border: #e4e4e7;
 
   --font-sans: "Work Sans", system-ui, -apple-system, sans-serif;
+  /* minor/meta font — labels, columns, colophon (ABC Favorit Mono stand-in) */
+  --font-mono: "DM Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
   /* type scale — display sizes clamp hard, everything else stays modest */
   --text-display: clamp(3rem, 11vw, 9rem);
