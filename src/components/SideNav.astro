@@ -26,7 +26,7 @@ const sections = [
   if (hero) {
     new IntersectionObserver(
       ([e]) => side.classList.toggle("visible", !e.isIntersecting),
-      { threshold: 0.25 },
+      { threshold: 0.6 },
     ).observe(hero);
   }
 
