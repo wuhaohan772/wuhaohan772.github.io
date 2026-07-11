@@ -16,12 +16,12 @@ import site from "../data/site.json";
 <style>
   /* card fills nearly the whole first viewport: thin equal margin all round */
   .frame {
-    padding: 1.25rem;
+    padding: 2rem;
   }
 
   .card {
-    border: 2px solid var(--color-fg);
-    min-height: calc(100dvh - 3.7rem - 2.5rem); /* viewport - top bar - frame */
+    border: 2px solid color-mix(in srgb, var(--color-fg) 45%, var(--color-bg));
+    min-height: calc(100dvh - 3.7rem - 4rem); /* viewport - top bar - frame */
     display: flex;
     flex-direction: column;
     justify-content: center;
