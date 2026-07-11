@@ -6,7 +6,16 @@ import site from "../data/site.json";
   <div class="frame">
     <div class="card">
       <p class="role">{site.role} — {site.location}</p>
-      <h1>{site.name}</h1>
+      <h1>
+        {
+          site.nameParts.map((p) => (
+            <span class="part">
+              {p.latin}
+              <span class="cjk">{p.cjk}</span>
+            </span>
+          ))
+        }
+      </h1>
       <p class="tagline">{site.tagline}</p>
       <p class="bio">{site.bio}</p>
     </div>
@@ -36,6 +45,27 @@ import site from "../data/site.json";
     line-height: 0.95;
     letter-spacing: -0.05em;
     margin-bottom: var(--space-3);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 0.3em;
+  }
+
+  .part {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .cjk {
+    font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB",
+      "Microsoft YaHei", sans-serif;
+    font-size: clamp(1rem, 1.8vw, 1.5rem);
+    font-weight: 400;
+    letter-spacing: 0.5em;
+    margin-right: -0.5em; /* recenter after trailing tracking */
+    color: var(--color-secondary);
+    margin-top: 0.35em;
   }
 
   .role {
