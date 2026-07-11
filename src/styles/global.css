@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap");
 
 /* Design tokens — from design-system/haohan-wu-personal-site/MASTER.md
    (Exaggerated Minimalism: monochrome + blue accent, spacious) */
@@ -10,7 +10,7 @@
   --color-muted: #e8ecf0;
   --color-border: #e4e4e7;
 
-  --font-mono: "Space Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-sans: "Manrope", system-ui, -apple-system, sans-serif;
 
   /* type scale — display sizes clamp hard, everything else stays modest */
   --text-display: clamp(3rem, 11vw, 9rem);
@@ -49,9 +49,10 @@ html {
 body {
   background: var(--color-bg);
   color: var(--color-fg);
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: var(--text-base);
   line-height: 1.6;
+  font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
 }
 
