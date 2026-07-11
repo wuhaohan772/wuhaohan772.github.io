@@ -21,8 +21,12 @@ import education from "../data/education.json";
         ))
       }
     </ul>
+  </div>
+</section>
 
-    <h2 class="reveal sub">Education</h2>
+<section id="education">
+  <div class="container">
+    <h2 class="reveal">Education</h2>
     <ul>
       {
         education.map((e) => (
@@ -52,10 +56,6 @@ import education from "../data/education.json";
     font-weight: 700;
     letter-spacing: -0.02em;
     margin-bottom: var(--space-4);
-  }
-
-  h2.sub {
-    margin-top: var(--space-5);
   }
 
   ul {

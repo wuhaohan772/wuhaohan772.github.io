@@ -1,14 +1,19 @@
 ---
 import site from "../data/site.json";
+
+const links = [
+  { label: "Email", url: `mailto:${site.email}` },
+  { label: "GitHub", url: site.github },
+  { label: "LinkedIn", url: site.linkedin },
+  { label: "Resume", url: site.resume },
+];
 ---
 
 <nav>
-  <div class="container nav-inner">
+  <div class="container bar">
     <a href="#top" class="wordmark">{site.name}</a>
     <div class="links">
-      <a href="#projects">Projects</a>
-      <a href="#experience">Experience</a>
-      <a href="#contact">Contact</a>
+      {links.map((l) => <a href={l.url}>{l.label} ↗</a>)}
     </div>
   </div>
 </nav>
@@ -23,7 +28,7 @@ import site from "../data/site.json";
     border-bottom: 1px solid var(--color-border);
   }
 
-  .nav-inner {
+  .bar {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
@@ -40,8 +45,10 @@ import site from "../data/site.json";
 
   .links {
     display: flex;
-    gap: var(--space-3);
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
     font-size: var(--text-sm);
+    font-weight: 600;
   }
 
   .links a {

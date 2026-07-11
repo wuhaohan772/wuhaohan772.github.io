@@ -19,14 +19,12 @@ const description = site.tagline;
   <body>
     <slot />
     <script>
-      // fade-up reveal on scroll; no-op if reduced motion (CSS handles it)
+      // reversible reveal: fade in entering viewport, fade back out on leave
+      // (reduced motion handled in CSS)
       const io = new IntersectionObserver(
         (entries) => {
           for (const e of entries) {
-            if (e.isIntersecting) {
-              e.target.classList.add("is-visible");
-              io.unobserve(e.target);
-            }
+            e.target.classList.toggle("is-visible", e.isIntersecting);
           }
         },
         { threshold: 0.1 },

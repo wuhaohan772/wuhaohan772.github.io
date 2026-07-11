@@ -1,26 +1,9 @@
 ---
 import site from "../data/site.json";
-
-const links = [
-  { label: "Email", url: `mailto:${site.email}` },
-  { label: "GitHub", url: site.github },
-  { label: "LinkedIn", url: site.linkedin },
-  { label: "Resume", url: site.resume },
-];
 ---
 
-<footer id="contact">
+<footer>
   <div class="container">
-    <h2 class="reveal">Get in touch</h2>
-    <ul>
-      {
-        links.map((l) => (
-          <li class="reveal">
-            <a href={l.url}>{l.label} ↗</a>
-          </li>
-        ))
-      }
-    </ul>
     <p class="colophon">
       © {new Date().getFullYear()} {site.name} · Built with Astro · Hosted on
       GitHub Pages
@@ -30,35 +13,7 @@ const links = [
 
 <style>
   footer {
-    padding-block: var(--space-5) var(--space-4);
-  }
-
-  h2 {
-    font-size: var(--text-section);
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    margin-bottom: var(--space-4);
-  }
-
-  ul {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-3) var(--space-4);
-    margin-bottom: var(--space-5);
-  }
-
-  li a {
-    font-size: var(--text-lg);
-    font-weight: 700;
-    text-decoration: none;
-    border-bottom: 2px solid var(--color-fg);
-    padding-bottom: 2px;
-  }
-
-  li a:hover {
-    border-color: var(--color-accent);
+    padding-block: var(--space-4);
   }
 
   .colophon {

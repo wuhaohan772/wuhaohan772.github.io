@@ -1,0 +1,117 @@
+---
+const sections = [
+  { id: "projects", label: "Projects" },
+  { id: "experience", label: "Experience" },
+  { id: "education", label: "Education" },
+];
+---
+
+<nav class="side" aria-label="Sections">
+  {
+    sections.map((s) => (
+      <a href={`#${s.id}`} data-section={s.id}>
+        <span class="dot" />
+        {s.label}
+      </a>
+    ))
+  }
+</nav>
+
+<script>
+  const side = document.querySelector(".side")!;
+  const hero = document.querySelector("#top");
+  const links = [...document.querySelectorAll<HTMLAnchorElement>(".side a")];
+
+  // rail appears only once the landing card is mostly gone
+  if (hero) {
+    new IntersectionObserver(
+      ([e]) => side.classList.toggle("visible", !e.isIntersecting),
+      { threshold: 0.25 },
+    ).observe(hero);
+  }
+
+  // scroll-spy: active = section crossing the upper-middle band of viewport
+  const spy = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) {
+          for (const a of links) {
+            a.classList.toggle(
+              "active",
+              a.dataset.section === (e.target as HTMLElement).id,
+            );
+          }
+        }
+      }
+    },
+    { rootMargin: "-35% 0px -55% 0px" },
+  );
+  for (const a of links) {
+    const sec = document.getElementById(a.dataset.section!);
+    if (sec) spy.observe(sec);
+  }
+</script>
+
+<style>
+  .side {
+    position: fixed;
+    left: clamp(0.75rem, 2vw, 2rem);
+    top: 50%;
+    transform: translateY(-50%) translateX(-0.5rem);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 0.35s ease-out,
+      transform 0.35s ease-out;
+    z-index: 20;
+  }
+
+  .side.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(-50%);
+  }
+
+  .side a {
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    text-decoration: none;
+    color: var(--color-secondary);
+  }
+
+  .side a.active {
+    color: var(--color-fg);
+    font-weight: 700;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1.5px solid currentColor;
+    flex-shrink: 0;
+    transition: background 0.2s ease-out;
+  }
+
+  .side a.active .dot {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .side {
+      transition: none;
+    }
+  }
+
+  @media (max-width: 1100px) {
+    .side {
+      display: none;
+    }
+  }
+</style>
