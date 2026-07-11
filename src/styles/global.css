@@ -1,0 +1,104 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap");
+
+/* Design tokens — from design-system/haohan-wu-personal-site/MASTER.md
+   (Exaggerated Minimalism: monochrome + blue accent, spacious) */
+:root {
+  --color-bg: #fafafa;
+  --color-fg: #09090b;
+  --color-secondary: #3f3f46;
+  --color-accent: #2563eb;
+  --color-muted: #e8ecf0;
+  --color-border: #e4e4e7;
+
+  --font-mono: "Space Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* type scale — display sizes clamp hard, everything else stays modest */
+  --text-display: clamp(3rem, 11vw, 9rem);
+  --text-section: clamp(1.75rem, 4vw, 3rem);
+  --text-lg: 1.125rem;
+  --text-base: 1rem;
+  --text-sm: 0.8125rem;
+
+  /* spacious rhythm (density dial: low) */
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2.5rem;
+  --space-5: 4rem;
+  --space-6: 7rem;
+
+  --measure: 62ch;
+  --container: 72rem;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+a:hover {
+  color: var(--color-accent);
+}
+
+::selection {
+  background: var(--color-fg);
+  color: var(--color-bg);
+}
+
+.container {
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: clamp(1.25rem, 4vw, 3rem);
+}
+
+/* scroll reveal — .reveal elements fade up when entering viewport */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.5s ease-out,
+    transform 0.5s ease-out;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}

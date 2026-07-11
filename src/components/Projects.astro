@@ -1,0 +1,108 @@
+---
+import projects from "../data/projects.json";
+---
+
+<section id="projects">
+  <div class="container">
+    <h2 class="reveal">Projects</h2>
+    <ol>
+      {
+        projects.map((p, i) => (
+          <li class="reveal">
+            <div class="index">
+              <span class="num">{String(i + 1).padStart(2, "0")}</span>
+              <span class="year">{p.year}</span>
+            </div>
+            <div class="body">
+              <h3>{p.title}</h3>
+              <p>{p.description}</p>
+              <div class="meta">
+                <span class="tech">{p.tech.join(" · ")}</span>
+                {p.links.map((l) => (
+                  <a href={l.url}>{l.label} ↗</a>
+                ))}
+              </div>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  section {
+    padding-block: var(--space-5);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  h2 {
+    font-size: var(--text-section);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    margin-bottom: var(--space-4);
+  }
+
+  ol {
+    list-style: none;
+    padding: 0;
+  }
+
+  li {
+    display: grid;
+    grid-template-columns: 8rem 1fr;
+    gap: var(--space-3);
+    padding-block: var(--space-4);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .index {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    font-size: var(--text-sm);
+    color: var(--color-secondary);
+  }
+
+  .num {
+    font-weight: 700;
+  }
+
+  h3 {
+    font-size: var(--text-lg);
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: var(--space-1);
+  }
+
+  .body p {
+    max-width: var(--measure);
+    color: var(--color-secondary);
+    margin-bottom: var(--space-2);
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+    align-items: baseline;
+  }
+
+  .tech {
+    color: var(--color-secondary);
+  }
+
+  @media (max-width: 640px) {
+    li {
+      grid-template-columns: 1fr;
+      gap: var(--space-1);
+    }
+
+    .index {
+      flex-direction: row;
+      gap: var(--space-2);
+    }
+  }
+</style>

@@ -1,0 +1,48 @@
+---
+import site from "../data/site.json";
+---
+
+<header id="top">
+  <div class="container">
+    <h1>{site.name}</h1>
+    <p class="role">{site.role} — {site.location}</p>
+    <p class="tagline">{site.tagline}</p>
+    <p class="bio">{site.bio}</p>
+  </div>
+</header>
+
+<style>
+  header {
+    padding-block: var(--space-6) var(--space-5);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  h1 {
+    font-size: var(--text-display);
+    font-weight: 700;
+    line-height: 0.95;
+    letter-spacing: -0.05em;
+    text-transform: uppercase;
+    margin-bottom: var(--space-3);
+  }
+
+  .role {
+    font-size: var(--text-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-secondary);
+    margin-bottom: var(--space-4);
+  }
+
+  .tagline {
+    font-size: var(--text-lg);
+    font-weight: 700;
+    max-width: var(--measure);
+    margin-bottom: var(--space-2);
+  }
+
+  .bio {
+    max-width: var(--measure);
+    color: var(--color-secondary);
+  }
+</style>

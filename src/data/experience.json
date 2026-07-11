@@ -1,0 +1,20 @@
+[
+  {
+    "period": "2025 — now",
+    "org": "Placeholder Company",
+    "role": "Software Engineering Intern",
+    "notes": "One line on the team and what you shipped. Numbers if possible."
+  },
+  {
+    "period": "2024",
+    "org": "Placeholder Lab",
+    "role": "Research Assistant",
+    "notes": "One line on the project and your contribution."
+  },
+  {
+    "period": "2023",
+    "org": "Placeholder Org",
+    "role": "Teaching Assistant",
+    "notes": "Course name, what you ran."
+  }
+]

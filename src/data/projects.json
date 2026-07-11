@@ -1,0 +1,33 @@
+[
+  {
+    "year": "2026",
+    "title": "Showdown",
+    "description": "Heads-up poker in the terminal against an LLM opponent that talks trash, remembers the match, and reacts when it loses.",
+    "tech": ["Go", "Bubble Tea", "Claude API"],
+    "links": [{ "label": "GitHub", "url": "https://github.com/wuhaohan772/showdown" }]
+  },
+  {
+    "year": "2025",
+    "title": "Placeholder Project Two",
+    "description": "One to two sentences: what it does, why it exists, what was hard about it. Concrete numbers beat adjectives.",
+    "tech": ["TypeScript", "React", "PostgreSQL"],
+    "links": [
+      { "label": "GitHub", "url": "https://github.com/wuhaohan772" },
+      { "label": "Demo", "url": "https://example.com" }
+    ]
+  },
+  {
+    "year": "2025",
+    "title": "Placeholder Project Three",
+    "description": "A tool/library/experiment. What problem it solves and for whom.",
+    "tech": ["Python", "FastAPI"],
+    "links": [{ "label": "GitHub", "url": "https://github.com/wuhaohan772" }]
+  },
+  {
+    "year": "2024",
+    "title": "Placeholder Project Four",
+    "description": "Older but still worth showing — coursework project, hackathon win, or research code.",
+    "tech": ["C++"],
+    "links": []
+  }
+]
