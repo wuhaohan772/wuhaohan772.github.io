@@ -1,4 +1,23 @@
-@import url("https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&display=swap");
+@font-face {
+  font-family: "Founders Grotesk";
+  src: url("/fonts/founders-grotesk-regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Founders Grotesk";
+  src: url("/fonts/founders-grotesk-semibold.woff2") format("woff2");
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Founders Grotesk";
+  src: url("/fonts/founders-grotesk-bold.woff2") format("woff2");
+  font-weight: 700 800;
+  font-display: swap;
+}
 
 /* Design tokens — from design-system/haohan-wu-personal-site/MASTER.md
    (Exaggerated Minimalism: monochrome + blue accent, spacious) */
@@ -10,7 +29,7 @@
   --color-muted: #e8ecf0;
   --color-border: #e4e4e7;
 
-  --font-sans: "Hanken Grotesk", system-ui, -apple-system, sans-serif;
+  --font-sans: "Founders Grotesk", system-ui, -apple-system, sans-serif;
 
   /* type scale — display sizes clamp hard, everything else stays modest */
   --text-display: clamp(3rem, 11vw, 9rem);
