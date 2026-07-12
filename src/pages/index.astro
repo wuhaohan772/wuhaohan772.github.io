@@ -24,18 +24,39 @@ import Footer from "../components/Footer.astro";
     --split: 38vw;
   }
 
+  /* right pane is the only scroller — identity and the line never move,
+     even under macOS rubber-band overscroll */
   .split {
     display: grid;
     grid-template-columns: var(--split) 1fr;
+    height: 100dvh;
+    overflow: hidden;
   }
 
   main {
+    overflow-y: auto;
+    height: 100%;
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
     padding-top: clamp(1.5rem, 3vw, 3rem);
   }
 
   @media (max-width: 1000px) {
     .split {
       grid-template-columns: 1fr;
+      height: auto;
+      overflow: visible;
+    }
+
+    main {
+      overflow: visible;
+      height: auto;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    main {
+      scroll-behavior: auto;
     }
   }
 </style>

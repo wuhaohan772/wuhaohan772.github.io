@@ -23,16 +23,19 @@ const sections = [
     .map((a) => document.getElementById(a.dataset.section!))
     .filter((s): s is HTMLElement => s !== null);
 
+  // the right pane is the scroller on desktop; fall back to window on mobile
+  const pane = document.querySelector("main");
+
   // active = last section whose top has passed the 45% viewport line;
-  // page bottom forces the last section
+  // scroller bottom forces the last section
   function update() {
-    if (secs.length === 0) return;
+    if (secs.length === 0 || !pane) return;
     const line = innerHeight * 0.45;
     let active = secs[0].id;
     for (const s of secs) {
       if (s.getBoundingClientRect().top <= line) active = s.id;
     }
-    if (Math.ceil(scrollY + innerHeight) >= document.body.scrollHeight - 2) {
+    if (Math.ceil(pane.scrollTop + pane.clientHeight) >= pane.scrollHeight - 2) {
       active = secs[secs.length - 1].id;
     }
     for (const a of links) {
@@ -41,19 +44,17 @@ const sections = [
   }
 
   let ticking = false;
-  addEventListener(
-    "scroll",
-    () => {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(() => {
-          update();
-          ticking = false;
-        });
-      }
-    },
-    { passive: true },
-  );
+  function onScroll() {
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(() => {
+        update();
+        ticking = false;
+      });
+    }
+  }
+  pane?.addEventListener("scroll", onScroll, { passive: true });
+  addEventListener("scroll", onScroll, { passive: true });
   update();
 </script>
 
