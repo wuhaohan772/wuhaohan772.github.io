@@ -8,20 +8,21 @@ import projects from "../data/projects.json";
     {
       projects.map((p, i) => (
         <li class="reveal">
-          <span class="num">{String(i + 1).padStart(2, "0")}</span>
-          <div class="body">
-            <h2>{p.title}</h2>
-            <p class="desc">{p.description}</p>
-            <p class="meta">
-              {p.year} · {p.tech.join(" · ")}
-              {p.links.map((l) => (
-                <a href={l.url}>
-                  {" "}
-                  {l.label} ↗
-                </a>
-              ))}
-            </p>
+          <div class="index">
+            <span>{String(i + 1).padStart(2, "0")}</span>
+            <span>{p.year}</span>
           </div>
+          <h2>{p.title}</h2>
+          <p class="desc">{p.description}</p>
+          <p class="meta">
+            {p.tech.join(" · ")}
+            {p.links.map((l) => (
+              <a href={l.url}>
+                {" "}
+                {l.label} ↗
+              </a>
+            ))}
+          </p>
         </li>
       ))
     }
@@ -31,6 +32,7 @@ import projects from "../data/projects.json";
 <style>
   section {
     padding: clamp(1.5rem, 3vw, 3rem);
+    padding-left: clamp(6rem, 9vw, 9rem); /* gutter for the line menu */
     padding-bottom: 4rem;
   }
 
@@ -49,51 +51,62 @@ import projects from "../data/projects.json";
   ol {
     list-style: none;
     padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
   }
 
   li {
-    display: grid;
-    grid-template-columns: clamp(5rem, 8vw, 8rem) 1fr;
-    gap: var(--space-3);
-    margin-bottom: var(--space-5);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--color-border);
+    padding: var(--space-3);
+    transition:
+      border-color 0.2s ease-out,
+      background-color 0.2s ease-out;
   }
 
-  /* big number on the left */
-  .num {
-    font-size: clamp(3rem, 5.5vw, 5rem);
-    font-weight: 800;
-    letter-spacing: -0.04em;
-    line-height: 0.9;
-    color: var(--color-fg);
+  li:hover {
+    border-color: var(--color-fg);
+    background: color-mix(in srgb, var(--color-fg) 4%, var(--color-bg));
+  }
+
+  .index {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-weight: 300;
+    font-size: var(--text-sm);
+    color: var(--color-secondary);
+    margin-bottom: var(--space-2);
   }
 
   h2 {
-    font-size: clamp(1.8rem, 3vw, 2.8rem);
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    line-height: 1.05;
-    margin-bottom: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-lg);
+    font-weight: 400;
+    margin-bottom: var(--space-1);
   }
 
   .desc {
     font-family: var(--font-mono);
     font-weight: 300;
+    font-size: var(--text-sm);
     color: var(--color-secondary);
-    max-width: 48ch;
     margin-bottom: var(--space-2);
   }
 
   .meta {
+    margin-top: auto;
     font-family: var(--font-mono);
     font-weight: 300;
     font-size: var(--text-sm);
     color: var(--color-secondary);
   }
 
-  @media (max-width: 640px) {
-    li {
+  @media (max-width: 1250px) {
+    ol {
       grid-template-columns: 1fr;
-      gap: var(--space-1);
     }
   }
 </style>
