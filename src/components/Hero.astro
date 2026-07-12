@@ -144,6 +144,10 @@ const tickerItems = [...site.ticker, ...site.ticker];
     animation: scroll 24s linear infinite;
   }
 
+  .ticker:hover .ticker-track {
+    animation-play-state: paused;
+  }
+
   .ticker span::after {
     content: "·";
     margin-left: 3rem;
