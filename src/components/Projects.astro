@@ -78,29 +78,10 @@ import projects from "../data/projects.json";
       background-color 0.2s ease-out;
   }
 
-  /* hover inverts the box */
+  /* hover: gentle ink tint + solid border */
   li:hover {
     border-color: var(--color-fg);
-    background: var(--color-fg);
-  }
-
-  li h3,
-  li p,
-  li .index,
-  li .tech,
-  li .meta a {
-    transition: color 0.2s ease-out;
-  }
-
-  li:hover h3,
-  li:hover .meta a {
-    color: var(--color-bg);
-  }
-
-  li:hover p,
-  li:hover .index,
-  li:hover .tech {
-    color: color-mix(in srgb, var(--color-bg) 72%, var(--color-fg));
+    background: color-mix(in srgb, var(--color-fg) 4%, var(--color-bg));
   }
 
   .index {
