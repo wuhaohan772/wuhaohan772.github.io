@@ -12,14 +12,17 @@ const contacts = [
 
 <aside class="identity" id="top">
   <div class="inner">
-    <p class="role">{site.role} — {site.location}</p>
     <div class="mask">
-      <h1>{site.name} <span class="cjk">吴皓汉</span></h1>
+      <h1>{site.name}</h1>
     </div>
-    <p class="tagline">{site.tagline}</p>
-    <p class="bio">{site.bio}</p>
-    <div class="contacts">
-      {contacts.map((c) => <a href={c.url}>{c.label} ↗</a>)}
+    <p class="cjk">吴皓汉</p>
+    <div class="meta">
+      <p class="role">{site.role}<br />{site.location}</p>
+      <p class="tagline">{site.tagline}</p>
+      <p class="bio">{site.bio}</p>
+      <div class="contacts">
+        {contacts.map((c) => <a href={c.url}>{c.label} ↗</a>)}
+      </div>
     </div>
   </div>
 
@@ -42,8 +45,39 @@ const contacts = [
   }
 
   .inner {
-    margin-block: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     padding: clamp(1.5rem, 3.5vw, 3.5rem);
+  }
+
+  .mask {
+    overflow: hidden;
+  }
+
+  /* B treatment: as big as one line allows */
+  h1 {
+    font-size: clamp(2.6rem, 4.9vw, 5.5rem);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    animation: rise 0.7s cubic-bezier(0.2, 0.6, 0.2, 1) both;
+  }
+
+  .cjk {
+    font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB",
+      "Microsoft YaHei", sans-serif;
+    font-weight: 400;
+    font-size: clamp(1.2rem, 2vw, 1.8rem);
+    letter-spacing: 0.6em;
+    color: var(--color-secondary);
+    white-space: nowrap;
+    margin-top: var(--space-2);
+    margin-bottom: auto; /* pushes the meta block to the bottom */
+    opacity: 0;
+    animation: fadeup 0.5s ease-out 0.45s forwards;
   }
 
   .role {
@@ -55,30 +89,7 @@ const contacts = [
     color: var(--color-secondary);
     margin-bottom: var(--space-2);
     opacity: 0;
-    animation: fadeup 0.5s ease-out 0.35s forwards;
-  }
-
-  .mask {
-    overflow: hidden;
-  }
-
-  h1 {
-    font-size: clamp(2.4rem, 4.2vw, 4rem);
-    font-weight: 700;
-    line-height: 1.05;
-    letter-spacing: -0.03em;
-    margin-bottom: var(--space-3);
-    animation: rise 0.7s cubic-bezier(0.2, 0.6, 0.2, 1) both;
-  }
-
-  .cjk {
-    font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB",
-      "Microsoft YaHei", sans-serif;
-    font-weight: 400;
-    font-size: 0.55em;
-    letter-spacing: 0.3em;
-    color: var(--color-secondary);
-    white-space: nowrap;
+    animation: fadeup 0.5s ease-out 0.55s forwards;
   }
 
   .tagline {
@@ -87,7 +98,7 @@ const contacts = [
     font-weight: 400;
     margin-bottom: var(--space-2);
     opacity: 0;
-    animation: fadeup 0.5s ease-out 0.55s forwards;
+    animation: fadeup 0.5s ease-out 0.65s forwards;
   }
 
   .bio {
@@ -96,9 +107,9 @@ const contacts = [
     font-size: var(--text-sm);
     color: var(--color-secondary);
     max-width: 44ch;
-    margin-bottom: var(--space-4);
+    margin-bottom: var(--space-3);
     opacity: 0;
-    animation: fadeup 0.5s ease-out 0.65s forwards;
+    animation: fadeup 0.5s ease-out 0.7s forwards;
   }
 
   .contacts {
@@ -191,6 +202,7 @@ const contacts = [
 
   @media (prefers-reduced-motion: reduce) {
     h1,
+    .cjk,
     .role,
     .tagline,
     .bio,
