@@ -7,6 +7,12 @@ const tickerItems = [...site.ticker, ...site.ticker];
 <section id="top">
   <div class="frame">
     <div class="card">
+      <div class="contacts">
+        <a href={`mailto:${site.email}`}>Email ↗</a>
+        <a href={site.github}>GitHub ↗</a>
+        <a href={site.linkedin}>LinkedIn ↗</a>
+        <a href={site.resume}>Resume ↗</a>
+      </div>
       <p class="role">{site.role} — {site.location}</p>
       <div class="mask">
         <h1>
@@ -41,15 +47,38 @@ const tickerItems = [...site.ticker, ...site.ticker];
   .card {
     position: relative;
     border: 2px solid color-mix(in srgb, var(--color-fg) 45%, var(--color-bg));
-    min-height: calc(100dvh - 3.7rem - 4rem); /* viewport - top bar - frame */
+    min-height: calc(100dvh - 4rem); /* viewport - frame */
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     text-align: center;
     padding: clamp(2rem, 6vw, 5rem);
-    padding-bottom: 5rem; /* room for the ticker strip */
+    padding-block: 5rem; /* room for the contact + ticker strips */
     overflow: hidden;
+  }
+
+  /* contact strip along the card's top edge — mirrors the ticker below */
+  .contacts {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-1) clamp(2rem, 6vw, 5rem);
+    padding-block: 0.7rem;
+    border-bottom: 1px solid var(--color-border);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: 400;
+    opacity: 0;
+    animation: fadeup 0.5s ease-out 0.85s forwards;
+  }
+
+  .contacts a {
+    text-decoration: none;
   }
 
   .mask {
@@ -187,7 +216,8 @@ const tickerItems = [...site.ticker, ...site.ticker];
     .role,
     .cjk,
     .tagline,
-    .bio {
+    .bio,
+    .contacts {
       animation: none;
       opacity: 1;
     }

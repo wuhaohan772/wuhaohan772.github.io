@@ -9,7 +9,7 @@ const links = [
 ];
 ---
 
-<nav>
+<nav class="dock" aria-label="Contact">
   <div class="container bar">
     <div class="links">
       {links.map((l) => <a href={l.url}>{l.label} ↗</a>)}
@@ -17,14 +17,34 @@ const links = [
   </div>
 </nav>
 
+<script>
+  // dock slides in once the landing card is mostly gone
+  const dock = document.querySelector(".dock")!;
+  const hero = document.querySelector("#top");
+  if (hero) {
+    new IntersectionObserver(
+      ([e]) => dock.classList.toggle("visible", !e.isIntersecting),
+      { threshold: 0.3 },
+    ).observe(hero);
+  }
+</script>
+
 <style>
-  nav {
-    position: sticky;
+  .dock {
+    position: fixed;
     top: 0;
-    z-index: 10;
+    left: 0;
+    right: 0;
+    z-index: 30;
     background: color-mix(in srgb, var(--color-bg) 88%, transparent);
     backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--color-border);
+    transform: translateY(-100%);
+    transition: transform 0.3s ease-out;
+  }
+
+  .dock.visible {
+    transform: none;
   }
 
   .bar {
@@ -45,5 +65,11 @@ const links = [
 
   .links a {
     text-decoration: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dock {
+      transition: none;
+    }
   }
 </style>
