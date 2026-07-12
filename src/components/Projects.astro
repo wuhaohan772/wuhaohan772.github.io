@@ -12,17 +12,14 @@ import projects from "../data/projects.json";
             <span>{String(i + 1).padStart(2, "0")}</span>
             <span>{p.year}</span>
           </div>
-          <h2>{p.title}</h2>
-          <p class="desc">{p.description}</p>
-          <p class="meta">
-            {p.tech.join(" · ")}
-            {p.links.map((l) => (
-              <a href={l.url}>
-                {" "}
-                {l.label} ↗
-              </a>
-            ))}
-          </p>
+          <div class="body">
+            <h2>{p.title}</h2>
+            <p class="desc">{p.description}</p>
+            <p class="tech">{p.tech.join(" · ")}</p>
+          </div>
+          <div class="links">
+            {p.links.map((l) => <a href={l.url}>{l.label} ↗</a>)}
+          </div>
         </li>
       ))
     }
@@ -51,14 +48,16 @@ import projects from "../data/projects.json";
   ol {
     list-style: none;
     padding: 0;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    flex-direction: column;
     gap: var(--space-3);
   }
 
+  /* long box: index | body | links */
   li {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 5rem 1fr auto;
+    gap: var(--space-3);
     border: 1px solid var(--color-border);
     padding: var(--space-3);
     transition:
@@ -73,12 +72,12 @@ import projects from "../data/projects.json";
 
   .index {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: var(--space-1);
     font-family: var(--font-mono);
     font-weight: 300;
     font-size: var(--text-sm);
     color: var(--color-secondary);
-    margin-bottom: var(--space-2);
   }
 
   h2 {
@@ -93,20 +92,38 @@ import projects from "../data/projects.json";
     font-weight: 300;
     font-size: var(--text-sm);
     color: var(--color-secondary);
-    margin-bottom: var(--space-2);
+    max-width: 56ch;
+    margin-bottom: var(--space-1);
   }
 
-  .meta {
-    margin-top: auto;
+  .tech {
     font-family: var(--font-mono);
     font-weight: 300;
     font-size: var(--text-sm);
     color: var(--color-secondary);
   }
 
-  @media (max-width: 1250px) {
-    ol {
+  .links {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    align-items: flex-end;
+    font-family: var(--font-mono);
+    font-weight: 300;
+    font-size: var(--text-sm);
+  }
+
+  @media (max-width: 640px) {
+    li {
       grid-template-columns: 1fr;
+      gap: var(--space-2);
+    }
+
+    .index,
+    .links {
+      flex-direction: row;
+      align-items: baseline;
+      gap: var(--space-2);
     }
   }
 </style>
