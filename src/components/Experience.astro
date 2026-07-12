@@ -63,6 +63,31 @@ import education from "../data/education.json";
     font-weight: 700;
     letter-spacing: -0.035em;
     margin-bottom: var(--space-4);
+    position: relative;
+    z-index: 0;
+  }
+
+  /* ghost numerals behind the headings */
+  h2::before {
+    position: absolute;
+    z-index: -1;
+    left: -0.06em;
+    top: 50%;
+    transform: translateY(-52%);
+    font-size: clamp(7rem, 14vw, 12rem);
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    color: color-mix(in srgb, var(--color-fg) 5%, var(--color-bg));
+    pointer-events: none;
+  }
+
+  #experience h2::before {
+    content: "02";
+  }
+
+  #education h2::before {
+    content: "03";
   }
 
   ul {

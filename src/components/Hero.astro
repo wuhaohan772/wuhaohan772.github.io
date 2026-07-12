@@ -1,23 +1,33 @@
 ---
 import site from "../data/site.json";
+
+const tickerItems = [...site.ticker, ...site.ticker];
 ---
 
 <section id="top">
   <div class="frame">
     <div class="card">
       <p class="role">{site.role} — {site.location}</p>
-      <h1>
-        {
-          site.nameParts.map((p) => (
-            <span class="part">
-              {p.latin}
-              <span class="cjk">{p.cjk}</span>
-            </span>
-          ))
-        }
-      </h1>
+      <div class="mask">
+        <h1>
+          {
+            site.nameParts.map((p) => (
+              <span class="part">
+                {p.latin}
+                <span class="cjk">{p.cjk}</span>
+              </span>
+            ))
+          }
+        </h1>
+      </div>
       <p class="tagline">{site.tagline}</p>
       <p class="bio">{site.bio}</p>
+
+      <div class="ticker" aria-hidden="true">
+        <div class="ticker-track">
+          {tickerItems.map((t) => <span>{t}</span>)}
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -29,6 +39,7 @@ import site from "../data/site.json";
   }
 
   .card {
+    position: relative;
     border: 2px solid color-mix(in srgb, var(--color-fg) 45%, var(--color-bg));
     min-height: calc(100dvh - 3.7rem - 4rem); /* viewport - top bar - frame */
     display: flex;
@@ -37,6 +48,12 @@ import site from "../data/site.json";
     align-items: center;
     text-align: center;
     padding: clamp(2rem, 6vw, 5rem);
+    padding-bottom: 5rem; /* room for the ticker strip */
+    overflow: hidden;
+  }
+
+  .mask {
+    overflow: hidden;
   }
 
   h1 {
@@ -49,6 +66,7 @@ import site from "../data/site.json";
     justify-content: center;
     align-items: flex-start;
     gap: 0.3em;
+    animation: rise 0.7s cubic-bezier(0.2, 0.6, 0.2, 1) both;
   }
 
   .part {
@@ -66,6 +84,8 @@ import site from "../data/site.json";
     margin-right: -0.5em; /* recenter after trailing tracking */
     color: var(--color-secondary);
     margin-top: 0.35em;
+    opacity: 0;
+    animation: fadeup 0.5s ease-out 0.55s forwards;
   }
 
   .role {
@@ -76,6 +96,8 @@ import site from "../data/site.json";
     letter-spacing: 0.08em;
     color: var(--color-secondary);
     margin-bottom: var(--space-3);
+    opacity: 0;
+    animation: fadeup 0.5s ease-out 0.45s forwards;
   }
 
   .tagline {
@@ -84,6 +106,8 @@ import site from "../data/site.json";
     font-weight: 400;
     max-width: var(--measure);
     margin-bottom: var(--space-2);
+    opacity: 0;
+    animation: fadeup 0.5s ease-out 0.65s forwards;
   }
 
   .bio {
@@ -92,5 +116,80 @@ import site from "../data/site.json";
     font-size: var(--text-sm);
     max-width: 52ch;
     color: var(--color-secondary);
+    opacity: 0;
+    animation: fadeup 0.5s ease-out 0.75s forwards;
+  }
+
+  /* infinite mono strip along the card's bottom edge */
+  .ticker {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-top: 1px solid var(--color-border);
+    overflow: hidden;
+    padding-block: 0.7rem;
+  }
+
+  .ticker-track {
+    display: flex;
+    gap: 3rem;
+    width: max-content;
+    font-family: var(--font-mono), "Noto Sans SC", sans-serif;
+    font-weight: 300;
+    font-size: var(--text-sm);
+    letter-spacing: 0.08em;
+    color: var(--color-secondary);
+    white-space: nowrap;
+    animation: scroll 24s linear infinite;
+  }
+
+  .ticker span::after {
+    content: "·";
+    margin-left: 3rem;
+  }
+
+  @keyframes rise {
+    from {
+      transform: translateY(110%);
+    }
+    to {
+      transform: none;
+    }
+  }
+
+  @keyframes fadeup {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes scroll {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    h1,
+    .role,
+    .cjk,
+    .tagline,
+    .bio {
+      animation: none;
+      opacity: 1;
+    }
+
+    .ticker-track {
+      animation: none;
+    }
   }
 </style>
