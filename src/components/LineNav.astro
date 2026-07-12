@@ -1,36 +1,39 @@
 ---
 const sections = [
   { id: "projects", label: "Projects" },
-  { id: "experience", label: "Experience & Education" },
+  { id: "experience", label: "Experience" },
+  { id: "education", label: "Education" },
 ];
 ---
 
-<div class="rail-anchor">
-  <nav class="side" aria-label="Sections">
-    {
-      sections.map((s) => (
-        <a href={`#${s.id}`} data-section={s.id}>
-          <span class="dot" />
-          {s.label}
-        </a>
-      ))
-    }
-  </nav>
-</div>
+<nav class="linenav" aria-label="Sections">
+  {
+    sections.map((s) => (
+      <a href={`#${s.id}`} data-section={s.id}>
+        <span class="dot" />
+        {s.label}
+      </a>
+    ))
+  }
+</nav>
 
 <script>
-  const links = [...document.querySelectorAll<HTMLAnchorElement>(".side a")];
+  const links = [...document.querySelectorAll<HTMLAnchorElement>(".linenav a")];
   const secs = links
     .map((a) => document.getElementById(a.dataset.section!))
     .filter((s): s is HTMLElement => s !== null);
 
-  // active = last section whose top has passed the 45% viewport line
+  // active = last section whose top has passed the 45% viewport line;
+  // page bottom forces the last section
   function update() {
     if (secs.length === 0) return;
     const line = innerHeight * 0.45;
     let active = secs[0].id;
     for (const s of secs) {
       if (s.getBoundingClientRect().top <= line) active = s.id;
+    }
+    if (Math.ceil(scrollY + innerHeight) >= document.body.scrollHeight - 2) {
+      active = secs[secs.length - 1].id;
     }
     for (const a of links) {
       a.classList.toggle("active", a.dataset.section === active);
@@ -55,27 +58,23 @@ const sections = [
 </script>
 
 <style>
-  /* in flow just above Projects: rail enters alongside the Projects heading,
-     travels up with scroll, then locks at the vertical center */
-  .rail-anchor {
-    position: sticky;
-    top: 45vh;
-    height: 0;
+  /* sits on the dividing line between the two panes */
+  .linenav {
+    position: fixed;
+    left: var(--split);
+    top: 50%;
+    transform: translate(-50%, -50%);
     z-index: 20;
-  }
-
-  .side {
-    position: absolute;
-    left: clamp(0.75rem, 2vw, 2rem);
-    top: 0;
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
+    background: var(--color-bg);
+    padding-block: 1rem;
     font-family: var(--font-mono);
     font-size: var(--text-sm);
   }
 
-  .side a {
+  .linenav a {
     display: flex;
     align-items: center;
     gap: 0.6em;
@@ -83,7 +82,7 @@ const sections = [
     color: var(--color-secondary);
   }
 
-  .side a.active {
+  .linenav a.active {
     color: var(--color-fg);
     font-weight: 700;
   }
@@ -97,13 +96,13 @@ const sections = [
     transition: background 0.2s ease-out;
   }
 
-  .side a.active .dot {
+  .linenav a.active .dot {
     background: var(--color-accent);
     border-color: var(--color-accent);
   }
 
-  @media (max-width: 1100px) {
-    .rail-anchor {
+  @media (max-width: 1000px) {
+    .linenav {
       display: none;
     }
   }

@@ -3,130 +3,97 @@ import projects from "../data/projects.json";
 ---
 
 <section id="projects">
-  <div class="container">
-    <h2 class="reveal">Projects</h2>
-    <ol>
-      {
-        projects.map((p, i) => (
-          <li class="reveal">
-            <div class="index">
-              <span class="num">{String(i + 1).padStart(2, "0")}</span>
-              <span class="year">{p.year}</span>
-            </div>
-            <h3>{p.title}</h3>
-            <p>{p.description}</p>
-            <div class="meta">
-              <span class="tech">{p.tech.join(" · ")}</span>
+  <p class="marker reveal">01 — Projects</p>
+  <ol>
+    {
+      projects.map((p, i) => (
+        <li class="reveal">
+          <span class="num">{String(i + 1).padStart(2, "0")}</span>
+          <div class="body">
+            <h2>{p.title}</h2>
+            <p class="desc">{p.description}</p>
+            <p class="meta">
+              {p.year} · {p.tech.join(" · ")}
               {p.links.map((l) => (
-                <a href={l.url}>{l.label} ↗</a>
+                <a href={l.url}>
+                  {" "}
+                  {l.label} ↗
+                </a>
               ))}
-            </div>
-          </li>
-        ))
-      }
-    </ol>
-  </div>
+            </p>
+          </div>
+        </li>
+      ))
+    }
+  </ol>
 </section>
 
 <style>
   section {
-    padding-block: var(--space-5);
-    border-bottom: 1px solid var(--color-border);
+    padding: clamp(1.5rem, 3vw, 3rem);
+    padding-bottom: 4rem;
   }
 
-  h2 {
-    font-size: var(--text-section);
-    font-weight: 700;
-    letter-spacing: -0.035em;
+  .marker {
+    font-family: var(--font-mono);
+    font-weight: 300;
+    font-size: var(--text-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--color-secondary);
+    border-bottom: 1px solid var(--color-fg);
+    padding-bottom: 0.6rem;
     margin-bottom: var(--space-4);
-    position: relative;
-    z-index: 0;
   }
 
-  /* ghost numeral behind the heading */
-  h2::before {
-    content: "01";
-    position: absolute;
-    z-index: -1;
-    left: -0.06em;
-    top: 50%;
-    transform: translateY(-52%);
-    font-size: clamp(7rem, 14vw, 12rem);
-    font-weight: 800;
-    letter-spacing: -0.05em;
-    line-height: 1;
-    color: color-mix(in srgb, var(--color-fg) 5%, var(--color-bg));
-    pointer-events: none;
-  }
-
-  /* project boxes — bordered blocks in a two-up grid (jamespants-style) */
   ol {
     list-style: none;
     padding: 0;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-4);
   }
 
   li {
-    display: flex;
-    flex-direction: column;
-    border: 1px solid var(--color-border);
-    padding: var(--space-4);
-    transition:
-      border-color 0.2s ease-out,
-      background-color 0.2s ease-out;
+    display: grid;
+    grid-template-columns: clamp(5rem, 8vw, 8rem) 1fr;
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
   }
 
-  /* hover: gentle ink tint + solid border */
-  li:hover {
-    border-color: var(--color-fg);
-    background: color-mix(in srgb, var(--color-fg) 4%, var(--color-bg));
+  /* big number on the left */
+  .num {
+    font-size: clamp(3rem, 5.5vw, 5rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 0.9;
+    color: var(--color-fg);
   }
 
-  .index {
-    display: flex;
-    justify-content: space-between;
+  h2 {
+    font-size: clamp(1.8rem, 3vw, 2.8rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    margin-bottom: var(--space-2);
+  }
+
+  .desc {
     font-family: var(--font-mono);
     font-weight: 300;
-    font-size: var(--text-sm);
     color: var(--color-secondary);
-    margin-bottom: var(--space-3);
-  }
-
-  h3 {
-    font-family: var(--font-mono);
-    font-size: var(--text-lg);
-    font-weight: 400;
-    margin-bottom: var(--space-1);
-  }
-
-  li p {
-    font-family: var(--font-mono);
-    font-weight: 300;
-    font-size: var(--text-sm);
-    color: var(--color-secondary);
-    margin-bottom: var(--space-3);
+    max-width: 48ch;
+    margin-bottom: var(--space-2);
   }
 
   .meta {
-    margin-top: auto;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
     font-family: var(--font-mono);
     font-weight: 300;
     font-size: var(--text-sm);
-    align-items: baseline;
-  }
-
-  .tech {
     color: var(--color-secondary);
   }
 
-  @media (max-width: 800px) {
-    ol {
+  @media (max-width: 640px) {
+    li {
       grid-template-columns: 1fr;
+      gap: var(--space-1);
     }
   }
 </style>

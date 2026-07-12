@@ -1,20 +1,41 @@
 ---
 import Base from "../layouts/Base.astro";
-import TopBar from "../components/TopBar.astro";
-import SideNav from "../components/SideNav.astro";
-import Hero from "../components/Hero.astro";
+import Identity from "../components/Identity.astro";
+import LineNav from "../components/LineNav.astro";
 import Projects from "../components/Projects.astro";
 import Experience from "../components/Experience.astro";
 import Footer from "../components/Footer.astro";
 ---
 
 <Base>
-  <TopBar />
-  <main>
-    <Hero />
-    <SideNav />
-    <Projects />
-    <Experience />
-  </main>
-  <Footer />
+  <div class="split">
+    <Identity />
+    <main>
+      <Projects />
+      <Experience />
+      <Footer />
+    </main>
+  </div>
+  <LineNav />
 </Base>
+
+<style>
+  :global(:root) {
+    --split: 38vw;
+  }
+
+  .split {
+    display: grid;
+    grid-template-columns: var(--split) 1fr;
+  }
+
+  main {
+    padding-top: clamp(1.5rem, 3vw, 3rem);
+  }
+
+  @media (max-width: 1000px) {
+    .split {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
