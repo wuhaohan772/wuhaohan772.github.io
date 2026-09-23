@@ -7,27 +7,24 @@
     "links": [{ "label": "GitHub", "url": "https://github.com/wuhaohan772/showdown" }]
   },
   {
-    "year": "2025",
-    "title": "Placeholder Project Two",
-    "description": "One to two sentences: what it does, why it exists, what was hard about it. Concrete numbers beat adjectives.",
-    "tech": ["TypeScript", "React", "PostgreSQL"],
-    "links": [
-      { "label": "GitHub", "url": "https://github.com/wuhaohan772" },
-      { "label": "Demo", "url": "https://example.com" }
-    ]
+    "year": "2026",
+    "title": "Optimal Ban Selection in League of Legends",
+    "description": "Formalized ban value as a counterfactual — a ban substitutes an opponent rather than removing one. Built a resumable Match-V5 ingest over 182k ranked games across six tiers, and recovered champion-by-champion interaction effects by method of moments net of sampling variance.",
+    "tech": ["Python", "pandas", "statsmodels", "SQLite", "Riot Match-V5 API"],
+    "links": []
   },
   {
     "year": "2025",
-    "title": "Placeholder Project Three",
-    "description": "A tool/library/experiment. What problem it solves and for whom.",
-    "tech": ["Python", "FastAPI"],
-    "links": [{ "label": "GitHub", "url": "https://github.com/wuhaohan772" }]
+    "title": "One-Dimensional Heat Equation",
+    "description": "Derived the explicit FTCS scheme from second-order Taylor expansions and implemented a vectorized solver with configurable boundary and initial conditions, validated against analytical solutions.",
+    "tech": ["Python", "NumPy", "Matplotlib"],
+    "links": []
   },
   {
-    "year": "2024",
-    "title": "Placeholder Project Four",
-    "description": "Older but still worth showing — coursework project, hackathon win, or research code.",
-    "tech": ["C++"],
+    "year": "2025",
+    "title": "Logistic Regression from Scratch",
+    "description": "Implemented logistic regression by maximizing log-likelihood with gradient ascent, no ML libraries, on ~10k individuals' ancestry genetic records.",
+    "tech": ["Python", "NumPy", "SciPy"],
     "links": []
   }
 ]

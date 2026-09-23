@@ -1,20 +1,20 @@
 [
   {
-    "period": "2025 — now",
-    "org": "Placeholder Company",
-    "role": "Software Engineering Intern",
-    "notes": "One line on the team and what you shipped. Numbers if possible."
+    "period": "Jun 2026 — now",
+    "org": "Stealth AI Startup",
+    "role": "Researcher",
+    "notes": "Built an LLM-agent evaluation benchmark end to end as sole owner (~450 commits); prototyped a reflection component for the production backend and ran the experiments behind it."
   },
   {
-    "period": "2024",
-    "org": "Placeholder Lab",
-    "role": "Research Assistant",
-    "notes": "One line on the project and your contribution."
+    "period": "Sept 2025 — now",
+    "org": "Arbor Live",
+    "role": "Marketing & Social Media Coordinator",
+    "notes": "Stanford chapter."
   },
   {
-    "period": "2023",
-    "org": "Placeholder Org",
-    "role": "Teaching Assistant",
-    "notes": "Course name, what you ran."
+    "period": "Jul — Sept 2025",
+    "org": "Joyme",
+    "role": "AIGC Product Management Intern",
+    "notes": "Remote."
   }
 ]

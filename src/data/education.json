@@ -1,14 +1,8 @@
 [
   {
-    "period": "2022 — 2026",
-    "org": "Placeholder University",
-    "degree": "B.S. Computer Science",
-    "notes": "Relevant coursework: systems, algorithms, ML. GPA if strong."
-  },
-  {
-    "period": "2026 —",
-    "org": "Placeholder University",
-    "degree": "M.S. (if applicable)",
-    "notes": "Focus area."
+    "period": "2022 — June 2027",
+    "org": "Stanford University",
+    "degree": "B.S. Mathematics",
+    "notes": "Coursework: convex optimization, real analysis, PDEs, probability theory, linear algebra."
   }
 ]

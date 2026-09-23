@@ -4,13 +4,13 @@
     { "latin": "Haohan", "cjk": "皓汉" },
     { "latin": "Wu", "cjk": "吴" }
   ],
-  "role": "Software Engineer",
+  "role": "Researcher & B.S. Mathematics, Stanford",
   "tagline": "I build systems that are fast, honest, and hard to break.",
-  "bio": "Currently studying at PLACEHOLDER. Interested in PLACEHOLDER-FIELD.",
-  "location": "Placeholder City",
+  "bio": "B.S. Mathematics candidate at Stanford, researching LLM-agent evaluation at a stealth AI startup.",
+  "location": "Stanford, CA",
   "email": "hwu27@stanford.edu",
   "github": "https://github.com/wuhaohan772",
-  "linkedin": "https://www.linkedin.com/in/PLACEHOLDER",
+  "linkedin": "https://www.linkedin.com/in/haohan-wu-72ab97279/",
   "resume": "/resume.pdf",
   "ticker": [
     "GO",
