@@ -48,7 +48,10 @@ const shortDescZh: Record<string, string> = {
 
 <Base>
   <div class="callig-band">
-    <img src="/images/callig-full.jpg" alt="Cursive-script calligraphy handscroll by Zhu Yunming" />
+    <picture>
+      <source media="(max-width: 599px)" srcset="/images/callig-mobile.jpg" />
+      <img src="/images/callig-full.jpg" alt="Cursive-script calligraphy handscroll by Zhu Yunming" />
+    </picture>
 
     <div class="band-footer">
       <p class="band-credit">Zhu Yunming (祝允明), <em>白马篇</em> (cursive script), Ming dynasty, National Palace Museum, public domain</p>
@@ -216,11 +219,22 @@ const shortDescZh: Record<string, string> = {
     z-index: 10;
     width: 100%;
   }
+  .callig-band picture,
   .callig-band img {
+    display: block;
     width: 100%;
+  }
+  .callig-band img {
     height: auto;
     aspect-ratio: 6000 / 774;
-    display: block;
+  }
+  /* below 600px the <picture> swaps to callig-mobile.jpg (a tighter
+     detail crop, 2.5:1) instead of squeezing the full 7.75:1 scroll
+     down to an illegible sliver — ratio here must match that crop */
+  @media (max-width: 599px) {
+    .callig-band img {
+      aspect-ratio: 2500 / 1000;
+    }
   }
 
   /* one compact row right below the image, inside the same sticky
