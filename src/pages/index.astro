@@ -248,18 +248,29 @@ const shortDescZh: Record<string, string> = {
     }
   }
 
-  /* one compact row right below the image, inside the same sticky
-     band, so it travels with it and stays pinned along with the
-     image — kept to a single line so it barely bumps the content
-     below it */
-  /* credit and buttons stacked together on the right, credit sitting
-     right above the toolbar, instead of split across the row */
+  /* credit sits right above the toolbar, both right-aligned. On
+     mobile this stays in normal flow, stacked below the image. */
   .band-footer {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 0.2rem;
     padding: 0.25rem 1ch 0.2rem;
+  }
+  /* at >=600px it's pulled out of flow and floated over the blank
+     space beside the title instead — .callig-band's own height then
+     collapses to just the image, so .split starts immediately after
+     it with zero added gap. This is NOT overlaid on the artwork
+     itself (that was rejected earlier) — it floats past the image's
+     bottom edge, over the page background beside "Haohan Wu". */
+  @media (min-width: 600px) {
+    .band-footer {
+      position: absolute;
+      top: 100%;
+      right: 1ch;
+      z-index: 11;
+      padding: 0.4rem 0 0;
+    }
   }
 
   .band-credit {
