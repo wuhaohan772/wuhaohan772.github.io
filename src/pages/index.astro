@@ -252,11 +252,13 @@ const shortDescZh: Record<string, string> = {
      band, so it travels with it and stays pinned along with the
      image — kept to a single line so it barely bumps the content
      below it */
+  /* credit and buttons stacked together on the right, credit sitting
+     right above the toolbar, instead of split across the row */
   .band-footer {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 1rem;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.35rem;
     padding: 0.3rem 1ch 0.35rem;
   }
 
@@ -265,6 +267,7 @@ const shortDescZh: Record<string, string> = {
     font-size: 0.68rem;
     letter-spacing: 0.02em;
     line-height: 1.4;
+    text-align: right;
   }
   .band-credit em { font-style: italic; }
 
