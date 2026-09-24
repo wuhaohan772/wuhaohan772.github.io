@@ -16,40 +16,84 @@ const shortDesc: Record<string, string> = {
   "One-Dimensional Heat Equation": "FTCS solver, validated against analytical solutions.",
   "Logistic Regression from Scratch": "Log-likelihood gradient ascent, no ML libs.",
 };
+
+// CJK name is surname-first (吴皓汉), not the Latin given-name-first
+// order nameParts is stored in (Haohan, Wu) — reverse before joining.
+const cjkName = [...site.nameParts].reverse().map((p) => p.cjk).join("");
+
+const metaZh = "斯坦福大学数学系 · 研究员";
+const bioZh = "从事大模型智能体评测方向的研究。";
+const h2ExperienceZh = "工作经历";
+const h2ProjectsZh = "精选项目";
+
+const roleZh: Record<string, string> = {
+  Researcher: "研究员",
+  "Marketing & Social Media Coordinator": "市场与社交媒体协调员",
+  "AIGC Product Management Intern": "AIGC 产品经理实习生",
+};
+
+const shortNotesZh: Record<string, string> = {
+  "Stealth AI Startup": "独立搭建端到端的大模型智能体评测基准，并为生产系统设计了反思（reflection）模块原型。",
+  "Arbor Live": "负责斯坦福分会的市场与社交媒体运营。",
+  Joyme: "远程办公。",
+};
+
+const shortDescZh: Record<string, string> = {
+  Showdown: "终端里的德州扑克，对手是个爱嘴贫的大模型。",
+  "Optimal Ban Selection in League of Legends": "把禁用建模为反事实替代，基于 18.2 万场排位赛数据分析。",
+  "One-Dimensional Heat Equation": "手写 FTCS 数值解法，并与解析解对照验证。",
+  "Logistic Regression from Scratch": "手写对数似然梯度上升，不依赖机器学习库。",
+};
 ---
 
 <Base>
+  <div class="callig-band">
+    <img src="/images/callig-full.jpg" alt="Cursive-script calligraphy handscroll by Zhu Yunming" />
+
+    <div class="band-footer">
+      <p class="band-credit">Zhu Yunming (祝允明), <em>白马篇</em> (cursive script), Ming dynasty, National Palace Museum, public domain</p>
+      <div class="toolbar">
+        <button type="button" id="dark-toggle" class="tbtn">[DARK]</button>
+        <button type="button" id="lang-toggle" class="tbtn">[中文]</button>
+      </div>
+    </div>
+  </div>
+
   <div class="split">
     <div class="text">
-      <h1>{site.name}</h1>
-      <p class="meta">Math @ Stanford · Researcher</p>
+      <h1 data-en={site.name} data-zh={cjkName}>{site.name}</h1>
+      <p class="meta" data-en="Math @ Stanford · Researcher" data-zh={metaZh}>Math @ Stanford · Researcher</p>
       <p class="contacts">
-        <span>{site.email}</span>
+        <button type="button" class="copy-email" data-email={site.email} data-label={site.email}>{site.email}</button>
         <a href={site.github}>github</a>
         <a href={site.linkedin}>linkedin</a>
         <a href={site.resume} download="Haohan-Wu-CV.pdf">cv</a>
       </p>
-      <p class="bio">LLM-agent eval research.</p>
+      <p class="bio" data-en="LLM-agent eval research." data-zh={bioZh}>LLM-agent eval research.</p>
 
       <section>
-        <h2>Experience</h2>
+        <h2 data-en="Experience" data-zh={h2ExperienceZh}>Experience</h2>
         {experience.map((e) => (
           <div class="entry">
             <span class="period">{e.period}</span>
-            <span><span class="org">{e.org}</span>, {e.role} — {shortNotes[e.org] ?? ""}</span>
+            <span>
+              <span class="org">{e.org}</span>,{" "}
+              <span data-en={e.role} data-zh={roleZh[e.role] ?? e.role}>{e.role}</span> —{" "}
+              <span data-en={shortNotes[e.org] ?? ""} data-zh={shortNotesZh[e.org] ?? shortNotes[e.org] ?? ""}>{shortNotes[e.org] ?? ""}</span>
+            </span>
           </div>
         ))}
       </section>
 
       <section>
-        <h2>Selected work</h2>
+        <h2 data-en="Selected work" data-zh={h2ProjectsZh}>Selected work</h2>
         {projects.map((p) => (
           <div class="proj">
             <div class="row-head">
               <h3>{p.title}</h3>
               <span class="yr">{p.year}</span>
             </div>
-            <p>{shortDesc[p.title] ?? p.description}</p>
+            <p data-en={shortDesc[p.title] ?? p.description} data-zh={shortDescZh[p.title] ?? p.description}>{shortDesc[p.title] ?? p.description}</p>
             <div class="tech">
               {p.tech.slice(0, 2).join(" · ")}
               {p.links.map((l) => <a href={l.url}> · {l.label} ↗</a>)}
@@ -58,23 +102,165 @@ const shortDesc: Record<string, string> = {
         ))}
       </section>
     </div>
-
-    <div class="images">
-      <div class="img-slot stilllife">
-        <img src="/images/rijks-stilllife.jpg" alt="Autochrome still life photograph of a copper kettle and vegetables" />
-      </div>
-      <p class="credit">Anonymous, <em>Stilleven met fruit, groenten en een koperen ketel</em>, Rijksmuseum, public domain</p>
-    </div>
   </div>
+
+  <div class="cursor-dot" id="cursor-dot"></div>
+
+  <script>
+    // cursor dot
+    const dot = document.getElementById("cursor-dot");
+    const canHover = window.matchMedia("(pointer: fine)").matches;
+
+    if (dot && canHover) {
+      document.documentElement.classList.add("cursor-dot-active");
+
+      window.addEventListener("mousemove", (e) => {
+        dot.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -50%)`;
+      });
+
+      document.querySelectorAll("a, button").forEach((el) => {
+        el.addEventListener("mouseenter", () => dot.classList.add("is-hover"));
+        el.addEventListener("mouseleave", () => dot.classList.remove("is-hover"));
+      });
+    }
+
+    // dark mode
+    const darkBtn = document.getElementById("dark-toggle");
+    if (localStorage.getItem("darkMode") === "1") {
+      document.documentElement.classList.add("dark-mode");
+    }
+    darkBtn.addEventListener("click", () => {
+      const active = document.documentElement.classList.toggle("dark-mode");
+      if (active) localStorage.setItem("darkMode", "1");
+      else localStorage.removeItem("darkMode");
+    });
+
+    // language toggle
+    const langBtn = document.getElementById("lang-toggle");
+    const i18nEls = document.querySelectorAll("[data-en]");
+    const syncLang = () => {
+      const zh = document.documentElement.classList.contains("lang-zh");
+      langBtn.textContent = zh ? "[EN]" : "[中文]";
+      i18nEls.forEach((el) => {
+        const node = el as HTMLElement;
+        node.textContent = zh ? node.dataset.zh! : node.dataset.en!;
+      });
+    };
+    if (localStorage.getItem("lang") === "zh") {
+      document.documentElement.classList.add("lang-zh");
+    }
+    syncLang();
+    langBtn.addEventListener("click", () => {
+      const active = document.documentElement.classList.toggle("lang-zh");
+      if (active) localStorage.setItem("lang", "zh");
+      else localStorage.removeItem("lang");
+      syncLang();
+    });
+
+    // copy email
+    document.querySelectorAll(".copy-email").forEach((el) => {
+      const btn = el as HTMLButtonElement;
+      const email = btn.dataset.email!;
+      const label = btn.dataset.label!;
+      btn.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(email);
+          btn.textContent = "copied";
+        } catch {
+          btn.textContent = "copy failed";
+        }
+        setTimeout(() => (btn.textContent = label), 1200);
+      });
+    });
+  </script>
 </Base>
 
 <style>
+  /* variables live on :root so html.dark-mode's override cascades down
+     to body and everything in it — declaring them on body directly (as
+     a previous version did) would re-pin the light values there and
+     dark mode would never actually reach any descendant */
+  :global(:root) {
+    --bg: #f7f6f2;
+    --fg: #0d0d0d;
+    --muted: #6b6b6b;
+    --border: #d8d5cb;
+  }
+
+  :global(html.dark-mode) {
+    --bg: #141414;
+    --fg: #f2f0ea;
+    --muted: #9a9a9a;
+    --border: #333;
+  }
+
+  :global(html) {
+    background: var(--bg);
+  }
+
   :global(body) {
-    background: #f7f6f2;
-    color: #0d0d0d;
+    background: var(--bg);
+    color: var(--fg);
     font-family: Arial, Helvetica, sans-serif;
     font-weight: 400;
     line-height: 1.6;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  /* horizontal calligraphy banner, pinned to the top of the viewport
+     while the rest of the page scrolls underneath it. Full image,
+     no crop — height follows the image's own ~7.75:1 ratio. */
+  .callig-band {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    width: 100%;
+  }
+  .callig-band img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 6000 / 774;
+    display: block;
+  }
+
+  /* one compact row right below the image, inside the same sticky
+     band, so it travels with it and stays pinned along with the
+     image — kept to a single line so it barely bumps the content
+     below it */
+  .band-footer {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.3rem 1ch 0.35rem;
+  }
+
+  .band-credit {
+    color: var(--muted);
+    font-size: 0.68rem;
+    letter-spacing: 0.02em;
+    line-height: 1.4;
+  }
+  .band-credit em { font-style: italic; }
+
+  .toolbar {
+    flex-shrink: 0;
+    display: flex;
+    gap: 0.5rem;
+  }
+  .tbtn {
+    font-family: "DM Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.02em;
+    color: var(--fg);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 0.3em 0.6em;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+  .tbtn:hover {
+    background: var(--fg);
+    color: var(--bg);
   }
 
   .split {
@@ -82,59 +268,14 @@ const shortDesc: Record<string, string> = {
     grid-template-columns: 1fr;
   }
 
+  /* no max-width cap: the column should use whatever room is left
+     after the inset, wrapping only when it actually reaches the
+     right edge, not at some arbitrary fixed reading width. */
   .text {
-    padding: 3rem 1.5rem 4rem 1ch;
+    padding: 0.35rem 1.5rem 4rem 2rem;
   }
-  @media (min-width: 700px) { .text { padding: 4.5rem 3rem 5rem 1ch; } }
-  @media (min-width: 900px) { .text { padding: 5.5rem 2rem 6rem 1ch; max-width: 34rem; } }
-
-  .images {
-    order: -1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: clamp(275px, 32.5vw, 475px);
-    max-width: calc(100vw - 4ch);
-    margin: 2rem auto 0;
-  }
-  @media (min-width: 900px) {
-    .images {
-      order: initial;
-      position: fixed;
-      top: 50%;
-      right: 2ch;
-      transform: translateY(-50%);
-      margin: 0;
-    }
-  }
-
-  .img-slot {
-    position: relative;
-    width: clamp(275px, 32.5vw, 475px);
-    max-width: 100%;
-    aspect-ratio: 6396 / 4250;
-    background-color: #e9e7e0;
-    background-image: repeating-linear-gradient(45deg, #d3d0c4 0, #d3d0c4 1px, transparent 1px, transparent 11px);
-    overflow: hidden;
-  }
-
-  .img-slot img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-    display: block;
-    transform: scale(1.15);
-  }
-
-  .credit {
-    padding: 0.5rem 1ch;
-    color: #6b6b6b;
-    font-size: 0.68rem;
-    letter-spacing: 0.02em;
-    line-height: 1.4;
-  }
-  .credit em { font-style: italic; }
+  @media (min-width: 700px) { .text { padding: 0.35rem 3rem 5rem 2rem; } }
+  @media (min-width: 900px) { .text { padding: 0.35rem 4rem 6rem 2rem; } }
 
   h1 {
     font-weight: 900;
@@ -146,7 +287,7 @@ const shortDesc: Record<string, string> = {
   .meta {
     margin-top: 0.9rem;
     font-size: 0.8rem;
-    color: #6b6b6b;
+    color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.06em;
   }
@@ -154,18 +295,28 @@ const shortDesc: Record<string, string> = {
   .contacts {
     margin-top: 0.75rem;
     display: flex;
+    align-items: center;
     gap: 1.25rem;
     flex-wrap: wrap;
     font-size: 0.8rem;
   }
-  .contacts a { color: #0d0d0d; }
-  .contacts a:hover { color: #6b6b6b; }
+  .contacts a { color: var(--fg); }
+  .contacts a:hover { color: var(--muted); }
+
+  .copy-email {
+    font: inherit;
+    color: var(--fg);
+    background: none;
+    border: none;
+    padding: 0;
+  }
+  .copy-email:hover { color: var(--muted); }
 
   .bio {
     margin-top: 1.5rem;
     max-width: 42ch;
     font-size: 1rem;
-    color: #2a2a2a;
+    color: color-mix(in srgb, var(--fg) 85%, var(--muted) 15%);
   }
 
   section { margin-top: 2.25rem; }
@@ -175,11 +326,10 @@ const shortDesc: Record<string, string> = {
     font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: #6b6b6b;
+    color: var(--muted);
     margin-bottom: 1.75rem;
   }
 
-  /* experience — bare list, no rules, whitespace carries the rhythm */
   .entry {
     display: grid;
     grid-template-columns: 1fr;
@@ -190,10 +340,9 @@ const shortDesc: Record<string, string> = {
   @media (min-width: 560px) {
     .entry { grid-template-columns: 7rem 1fr; gap: 0.5rem; align-items: baseline; }
   }
-  .entry .period { font-size: 0.78rem; color: #6b6b6b; }
+  .entry .period { font-size: 0.78rem; color: var(--muted); }
   .entry .org { font-weight: 700; }
 
-  /* projects — uniform rows, title+year as the row head */
   .proj { padding-bottom: 1.1rem; }
   .proj:last-child { padding-bottom: 0; }
   .proj .row-head {
@@ -203,11 +352,49 @@ const shortDesc: Record<string, string> = {
     flex-wrap: wrap;
   }
   .proj h3 { font-weight: 700; font-size: 1.1rem; }
-  .proj .yr { font-size: 0.75rem; color: #6b6b6b; }
-  .proj p { margin-top: 0.5rem; color: #2a2a2a; font-size: 0.92rem; }
-  .proj .tech { margin-top: 0.6rem; font-size: 0.75rem; color: #6b6b6b; }
-  .proj a { color: #0d0d0d; text-decoration: underline; text-underline-offset: 2px; }
-  .proj a:hover { color: #6b6b6b; }
+  .proj .yr { font-size: 0.75rem; color: var(--muted); }
+  .proj p { margin-top: 0.5rem; color: var(--fg); font-size: 0.92rem; }
+  .proj .tech { margin-top: 0.6rem; font-size: 0.75rem; color: var(--muted); }
+  .proj a { color: var(--fg); text-decoration: underline; text-underline-offset: 2px; }
+  .proj a:hover { color: var(--muted); }
 
-  :global(:focus-visible) { outline: 2px solid #0d0d0d; outline-offset: 3px; }
+  :global(:focus-visible) { outline: 2px solid var(--fg); outline-offset: 3px; }
+
+  /* custom cursor — small circle outline, fills solid over links/buttons.
+     Only active once JS confirms a fine pointer (mouse), so touch/no-JS
+     visitors keep the native cursor. */
+  :global(html.cursor-dot-active),
+  :global(html.cursor-dot-active *) {
+    cursor: none !important;
+  }
+
+  /* selection highlight — global.css defines its own ::selection using
+     different token names (--color-fg/--color-bg) that dark mode never
+     touches, so selecting text in dark mode used the light-mode colors
+     and became nearly invisible. Override with this page's own tokens,
+     which do flip with .dark-mode, so selection always reads as an
+     inverted (fg-on-bg) highlight in either theme. */
+  :global(::selection) {
+    background: var(--fg);
+    color: var(--bg);
+  }
+
+  .cursor-dot {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 14px;
+    height: 14px;
+    border: 1.5px solid var(--fg);
+    border-radius: 50%;
+    background: transparent;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-100px, -100px);
+    transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.03s linear;
+  }
+
+  .cursor-dot.is-hover {
+    background: var(--fg);
+  }
 </style>
