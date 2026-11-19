@@ -48,10 +48,20 @@ const shortDescZh: Record<string, string> = {
 
 <Base>
   <div class="callig-band">
-    <picture>
-      <source media="(max-width: 599px)" srcset="/images/callig-mobile.jpg" />
-      <img src="/images/callig-full.jpg" alt="Cursive-script calligraphy handscroll by Zhu Yunming" />
-    </picture>
+    <!-- two copies side by side; the track slides right by one copy's
+         width and loops, so the scroll rolls left-to-right forever -->
+    <div class="callig-roll">
+      <div class="callig-track">
+        <picture>
+          <source media="(max-width: 599px)" srcset="/images/callig-mobile.jpg" />
+          <img src="/images/callig-full.jpg" alt="Cursive-script calligraphy handscroll by Zhu Yunming" />
+        </picture>
+        <picture aria-hidden="true">
+          <source media="(max-width: 599px)" srcset="/images/callig-mobile.jpg" />
+          <img src="/images/callig-full.jpg" alt="" />
+        </picture>
+      </div>
+    </div>
 
     <div class="band-footer">
       <p class="band-credit">Zhu Yunming (祝允明), <em>白马篇</em> (cursive script), Ming dynasty, National Palace Museum, Taipei, public domain</p>
@@ -112,24 +122,224 @@ const shortDescZh: Record<string, string> = {
     </div>
   </div>
 
-  <div class="cursor-dot" id="cursor-dot"></div>
+  <!-- magnifier cursor: a 28px circular lens. The view holds a scale(2)
+       copy of the page; the SVG filter adds the residual distortion and
+       dispersion of a real plano-convex lens (maps built in the script). -->
+  <div class="mag" id="mag" aria-hidden="true">
+    <div class="mag-glass">
+      <div class="mag-view"><div class="mag-page" inert></div></div>
+      <div class="mag-sheen"></div>
+    </div>
+  </div>
+  <svg class="mag-defs" width="0" height="0" aria-hidden="true" focusable="false">
+    <filter id="lens-f" x="0" y="0" width="28" height="28" filterUnits="userSpaceOnUse"
+      primitiveUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feImage id="lens-map-r" x="0" y="0" width="28" height="28" preserveAspectRatio="none" result="mR" />
+      <feImage id="lens-map-g" x="0" y="0" width="28" height="28" preserveAspectRatio="none" result="mG" />
+      <feImage id="lens-map-b" x="0" y="0" width="28" height="28" preserveAspectRatio="none" result="mB" />
+      <feDisplacementMap in="SourceGraphic" in2="mR" scale="3" xChannelSelector="R" yChannelSelector="G" result="dR" />
+      <feDisplacementMap in="SourceGraphic" in2="mG" scale="3" xChannelSelector="R" yChannelSelector="G" result="dG" />
+      <feDisplacementMap in="SourceGraphic" in2="mB" scale="3" xChannelSelector="R" yChannelSelector="G" result="dB" />
+      <feColorMatrix in="dR" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="cR" />
+      <feColorMatrix in="dG" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="cG" />
+      <feColorMatrix in="dB" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="cB" />
+      <feComposite in="cR" in2="cG" operator="arithmetic" k2="1" k3="1" result="cRG" />
+      <feComposite in="cRG" in2="cB" operator="arithmetic" k2="1" k3="1" />
+    </filter>
+  </svg>
 
   <script>
-    // cursor dot
-    const dot = document.getElementById("cursor-dot");
+    import poem from "../data/baima.json";
+
+    // ---- magnifier cursor -------------------------------------------------
+    // Optics: plano-convex lens, convex side up, flat side facing the page.
+    // Viewer looks straight down (orthographic). Each vertical ray at lens
+    // radius r refracts at the sphere, then at the flat face, and lands on
+    // the page at radius s(r). Page distance h is solved so the paraxial
+    // green magnification is exactly M0 = 2; marginal rays bend harder
+    // (spherical aberration), so magnification climbs toward the rim.
+    const LENS_R = 14; // aperture radius, px (lens is 28px across)
+    const SPHERE_R = LENS_R * (11 / 7); // convex radius of curvature, px (same shape at any size)
+    const N = { r: 1.5143, g: 1.5168, b: 1.5224 }; // BK7 crown glass, C/d/F lines
+    const M0 = 2; // central magnification, applied as a crisp CSS scale
+    const DISP_SCALE = 3; // must match feDisplacementMap scale (max |D| ~0.6px at rim)
+
+    const capT = SPHERE_R - Math.sqrt(SPHERE_R ** 2 - LENS_R ** 2);
+    const sphereZ = capT - SPHERE_R;
+
+    // returns [x at flat face, dx/dz slope of exit ray] for a ray at radius r
+    const refract = (r: number, n: number): [number, number] => {
+      const z1 = sphereZ + Math.sqrt(SPHERE_R ** 2 - r * r);
+      const nx = r / SPHERE_R, nz = (z1 - sphereZ) / SPHERE_R;
+      const eta = 1 / n, k = 1 - eta * eta * (1 - nz * nz);
+      const f = eta * nz - Math.sqrt(k);
+      const tx = f * nx, tz = -eta + f * nz; // inside glass
+      const x2 = r + tx * (z1 / -tz);
+      const k2 = 1 - n * n * (1 - tz * tz);
+      const ux = n * tx, uz = n * tz - Math.sqrt(Math.max(k2, 0)); // exiting flat face
+      return [x2, ux / -uz];
+    };
+    const [px0, pslope] = refract(0.5, N.g);
+    const pageH = (0.5 / M0 - px0) / pslope;
+    const traceLens = (r: number, n: number): number => {
+      const [x2, slope] = refract(r, n);
+      return x2 + slope * pageH;
+    };
+
+    // displacement map: R/G encode x/y offset (relative to the uniform 2x
+    // CSS scale) from each output pixel to the clone pixel it should show
+    const buildMap = (n: number): string => {
+      const size = LENS_R * 2;
+      const c = document.createElement("canvas");
+      c.width = c.height = size;
+      const ctx = c.getContext("2d")!;
+      const img = ctx.createImageData(size, size);
+      for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+          const dx = x + 0.5 - LENS_R, dy = y + 0.5 - LENS_R;
+          const r = Math.hypot(dx, dy);
+          let f = 0;
+          if (r > 0.01 && r < LENS_R) f = (M0 * traceLens(r, n)) / r - 1;
+          const i = (y * size + x) * 4;
+          img.data[i] = Math.round((0.5 + (f * dx) / DISP_SCALE) * 255);
+          img.data[i + 1] = Math.round((0.5 + (f * dy) / DISP_SCALE) * 255);
+          img.data[i + 2] = 128;
+          img.data[i + 3] = 255;
+        }
+      }
+      ctx.putImageData(img, 0, 0);
+      return c.toDataURL();
+    };
+
+    const mag = document.getElementById("mag")!;
+    const magPage = mag.querySelector(".mag-page") as HTMLElement;
+    const sources = [
+      document.querySelector(".callig-band") as HTMLElement,
+      document.querySelector(".split") as HTMLElement,
+    ];
     const canHover = window.matchMedia("(pointer: fine)").matches;
 
-    if (dot && canHover) {
+    if (canHover) {
       document.documentElement.classList.add("cursor-dot-active");
+      for (const ch of ["r", "g", "b"] as const) {
+        document.getElementById(`lens-map-${ch}`)!.setAttribute("href", buildMap(N[ch]));
+      }
+      mag.querySelector(".mag-view")!.classList.add("is-lensed");
+
+      let cx = -999, cy = -999, frame = 0;
+      let bandClone: HTMLElement | null = null, bandStaticTop = 0;
+
+      const reclone = () => {
+        const parts = sources.map((src) => {
+          const copy = src.cloneNode(true) as HTMLElement;
+          copy.removeAttribute("id");
+          copy.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
+          // keep the language toggle's [data-en] query off the copy
+          copy.querySelectorAll("[data-en]").forEach((el) => {
+            el.removeAttribute("data-en");
+            el.removeAttribute("data-zh");
+          });
+          return copy;
+        });
+        magPage.replaceChildren(...parts);
+        bandClone = parts[0];
+        // sticky can't stick inside the lens, so the band copy is offset
+        // by hand to wherever the real band currently sits
+        bandClone.style.position = "relative";
+        bandClone.style.top = "0px";
+        bandStaticTop = bandClone.offsetTop;
+        syncRoll();
+        place();
+      };
+
+      // the copy's rolling poem starts its animation later than the real
+      // one; pin it to the real animation's clock so the two stay in step
+      const realTrack = sources[0].querySelector(".callig-track") as HTMLElement;
+      const syncRoll = () => {
+        const real = realTrack.getAnimations()[0];
+        const copy = bandClone?.querySelector(".callig-track")?.getAnimations()[0];
+        if (real && copy) copy.currentTime = real.currentTime;
+      };
+
+      const place = () => {
+        frame = 0;
+        const docX = cx + window.scrollX, docY = cy + window.scrollY;
+        mag.style.transform = `translate(${cx - LENS_R}px, ${cy - LENS_R}px)`;
+        magPage.style.width = `${document.documentElement.clientWidth}px`;
+        magPage.style.transform =
+          `translate(${LENS_R - M0 * docX}px, ${LENS_R - M0 * docY}px) scale(${M0})`;
+        if (bandClone) {
+          const realTop = sources[0].getBoundingClientRect().top + window.scrollY;
+          bandClone.style.top = `${realTop - bandStaticTop}px`;
+        }
+        syncRoll();
+        readPoem();
+      };
+      const schedule = () => { if (!frame) frame = requestAnimationFrame(place); };
 
       window.addEventListener("mousemove", (e) => {
-        dot.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -50%)`;
+        cx = e.clientX; cy = e.clientY;
+        mag.classList.add("is-on");
+        schedule();
+      });
+      document.documentElement.addEventListener("mouseleave", () => mag.classList.remove("is-on"));
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      document.addEventListener("mouseover", (e) => {
+        const hit = (e.target as Element).closest?.("a, button");
+        mag.classList.toggle("is-hover", !!hit);
       });
 
-      document.querySelectorAll("a, button").forEach((el) => {
-        el.addEventListener("mouseenter", () => dot.classList.add("is-hover"));
-        el.addEventListener("mouseleave", () => dot.classList.remove("is-hover"));
+      // language toggle and "copied" swap text in place: re-copy next frame
+      let recloneFrame = 0;
+      const mo = new MutationObserver(() => {
+        if (!recloneFrame) recloneFrame = requestAnimationFrame(() => { recloneFrame = 0; reclone(); });
       });
+      sources.forEach((s) => mo.observe(s, { subtree: true, childList: true, characterData: true }));
+
+      // ---- the lens reads the poem ------------------------------------------
+      // Title characters one by one; every other column shows the couplet
+      // it belongs to (data and box notes in src/data/baima.json). The
+      // mobile crop (callig-mobile.jpg) has no boxes, so it never reads.
+      type Box = number[];
+      const inBox = (u: number, v: number) => (b: Box) => u >= b[0] && u < b[1] && v >= b[2] && v < b[3];
+      const readTag = document.createElement("div");
+      readTag.className = "mag-read";
+      readTag.setAttribute("aria-hidden", "true");
+      document.body.append(readTag);
+      function readPoem() {
+        let hit: string[] | undefined, isTitle = false;
+        for (const img of realTrack.querySelectorAll("img")) {
+          if (!img.currentSrc.includes("callig-full")) continue;
+          const r = img.getBoundingClientRect();
+          if (cx < r.left || cx >= r.right || cy < r.top || cy >= r.bottom) continue;
+          const u = ((cx - r.left) / r.width) * poem.scan.w, v = ((cy - r.top) / r.height) * poem.scan.h;
+          const t = poem.titleBoxes.find(inBox(u, v));
+          const c = t ? undefined : poem.boxes.find(inBox(u, v));
+          if (t) { hit = poem.title[t[4]]; isTitle = true; }
+          else if (c) hit = poem.couplets[c[4]];
+          if (hit) break;
+        }
+        readTag.classList.toggle("is-on", !!hit);
+        if (hit) {
+          if (readTag.dataset.zh !== hit[0]) {
+            readTag.dataset.zh = hit[0];
+            readTag.classList.toggle("is-title", isTitle);
+            readTag.innerHTML = `<b></b><span></span>`;
+            readTag.querySelector("b")!.textContent = hit[0];
+            readTag.querySelector("span")!.textContent = hit[1];
+          }
+          // sit right of the lens; flip left if it would run off-screen
+          const w = readTag.offsetWidth;
+          const x = cx + LENS_R + 10 + w > window.innerWidth ? cx - LENS_R - 10 - w : cx + LENS_R + 10;
+          readTag.style.transform = `translate(${x}px, ${cy - LENS_R}px)`;
+        }
+      }
+      // the poem keeps rolling under a still cursor: keep re-reading it
+      setInterval(() => { if (mag.classList.contains("is-on")) schedule(); }, 100);
+
+      reclone();
     }
 
     // dark mode
@@ -230,7 +440,24 @@ const shortDescZh: Record<string, string> = {
       z-index: 10;
     }
   }
-  .callig-band picture,
+  .callig-roll { overflow: hidden; }
+  .callig-track {
+    display: flex;
+    width: 200%;
+    animation: callig-roll 120s linear infinite;
+  }
+  @keyframes callig-roll {
+    from { transform: translateX(-50%); }
+    to { transform: translateX(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .callig-track { animation: none; transform: translateX(-50%); }
+  }
+  .callig-band picture {
+    display: block;
+    flex: none;
+    width: 50%;
+  }
   .callig-band img {
     display: block;
     width: 100%;
@@ -310,8 +537,10 @@ const shortDescZh: Record<string, string> = {
   /* sun shows the current mode is light (click for dark); moon shows
      the current mode is dark (click for light) */
   .icon-moon { display: none; }
-  :global(html.dark-mode) #dark-toggle .icon-sun { display: none; }
-  :global(html.dark-mode) #dark-toggle .icon-moon { display: block; }
+  /* class-only selectors (not #dark-toggle) so the id-stripped page
+     copy inside the magnifier lens styles the same way */
+  :global(html.dark-mode) .icon-sun { display: none; }
+  :global(html.dark-mode) .icon-moon { display: block; }
 
   .split {
     display: grid;
@@ -429,22 +658,84 @@ const shortDescZh: Record<string, string> = {
     color: var(--bg);
   }
 
-  .cursor-dot {
+  /* magnifier cursor — 28px circular lens, hotspot at the center.
+     Hidden until the script confirms a fine pointer. */
+  .mag-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+  .mag {
     position: fixed;
     top: 0;
     left: 0;
-    width: 14px;
-    height: 14px;
-    border: 1.5px solid var(--fg);
-    border-radius: 50%;
-    background: transparent;
+    width: 28px;
+    height: 28px;
     pointer-events: none;
     z-index: 9999;
-    transform: translate(-100px, -100px);
-    transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.03s linear;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    /* soft shadow the raised glass casts on the page */
+    filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.22));
+  }
+  .mag.is-on { opacity: 1; }
+
+  .mag-glass {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--bg);
+    box-shadow: 0 0 0 1.5px var(--fg);
+    transition: box-shadow 0.15s ease;
+  }
+  .mag.is-hover .mag-glass { box-shadow: 0 0 0 3px var(--fg); }
+
+  .mag-view {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  .mag-view.is-lensed { filter: url(#lens-f); }
+
+  .mag-page {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
   }
 
-  .cursor-dot.is-hover {
-    background: var(--fg);
+  /* Fresnel: reflectance rises where the convex surface tilts away from
+     the eye, so the rim reads brighter; plus one window highlight and a
+     thin dark band where the glass edge thins out */
+  .mag-sheen {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background:
+      radial-gradient(ellipse 22% 12% at 32% 24%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 70%),
+      radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0) 62%, rgba(255, 255, 255, 0.16) 88%, rgba(255, 255, 255, 0.32) 98%);
+    box-shadow: inset 0 0 2px 0.5px rgba(0, 0, 0, 0.25);
   }
+
+  /* label beside the lens when it sits over a box in the poem */
+  :global(.mag-read) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9998;
+    pointer-events: none;
+    display: none;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding: 0.35rem 0.6rem;
+    background: var(--bg);
+    color: var(--fg);
+    border: 1.5px solid var(--fg);
+    font-size: 0.75rem;
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+  :global(.mag-read.is-on) { display: flex; }
+  :global(.mag-read b) { font-size: 1.05rem; font-weight: 400; letter-spacing: 0.08em; }
+  :global(.mag-read.is-title b) { font-size: 1.4rem; }
+  :global(.mag-read span) { white-space: pre-line; }
 </style>
