@@ -45,23 +45,6 @@ const shortDescZh: Record<string, string> = {
   "Logistic Regression from Scratch": "手写对数似然梯度上升，不依赖机器学习库。",
 };
 
-// ASCII view: the Latin name in FIGlet "Standard" lettering, glyphs set
-// side by side without smushing. (The CJK name is sampled at runtime.)
-const FIG: Record<string, string[]> = {
-  H: [" _   _ ", "| | | |", "| |_| |", "|  _  |", "|_| |_|"],
-  W: ["__        __", "\\ \\      / /", " \\ \\ /\\ / / ", "  \\ V  V /  ", "   \\_/\\_/   "],
-  a: ["       ", "  __ _ ", " / _` |", "| (_| |", " \\__,_|"],
-  h: [" _     ", "| |__  ", "| '_ \\ ", "| | | |", "|_| |_|"],
-  n: ["       ", " _ __  ", "| '_ \\ ", "| | | |", "|_| |_|"],
-  o: ["       ", "  ___  ", " / _ \\ ", "| (_) |", " \\___/ "],
-  u: ["       ", " _   _ ", "| | | |", "| |_| |", " \\__,_|"],
-  " ": ["   ", "   ", "   ", "   ", "   "],
-};
-const asciiNameRows = [0, 1, 2, 3, 4].map((r) =>
-  [...site.name].map((ch) => FIG[ch]?.[r] ?? "").join("").replace(/\s+$/, ""),
-);
-const asciiName = asciiNameRows.join("\n");
-const asciiNameCols = Math.max(...asciiNameRows.map((r) => r.length));
 ---
 
 <Base>
@@ -107,10 +90,9 @@ const asciiNameCols = Math.max(...asciiNameRows.map((r) => r.length));
   </div>
 
   <div class="split">
+    <pre class="ascii-field" aria-hidden="true"></pre>
     <div class="text">
       <h1 data-en={site.name} data-zh={cjkName}>{site.name}</h1>
-      <pre class="ascii-name ascii-name-en" aria-hidden="true" style={`--cols: ${asciiNameCols}`}>{asciiName}</pre>
-      <pre class="ascii-name ascii-name-zh" aria-hidden="true" data-text={cjkName}></pre>
       <p class="meta" data-en="Math @ Stanford · Researcher" data-zh={metaZh}>Math @ Stanford · Researcher</p>
       <p class="contacts">
         <button type="button" class="copy-email" data-email={site.email} data-label={site.email}>{site.email}</button>
@@ -374,23 +356,35 @@ const asciiNameCols = Math.max(...asciiNameRows.map((r) => r.length));
     }
 
     // ---- ASCII view ---------------------------------------------------------
-    // The whole page switches to monospace text (styles under html.ascii-mode)
-    // and the scroll is re-drawn in characters, in one of two styles:
-    //   "ramp" — the classic density ramp, ink → denser glyph
-    //   "poem" — the poem itself: its own characters, written top to bottom,
-    //            right to left as the scroll reads, fill wherever there's ink
-    // Red seals stay red in both. The <pre> holds real text (not a canvas)
+    // A black canvas under a very fine, dense field of white characters; the
+    // page's text is carved out of the field as black negative space (styles
+    // under html.ascii-mode). The scroll is inverted the same way: its paper
+    // becomes the field and Zhu Yunming's brush strokes are the holes. Two
+    // alphabets for the field:
+    //   "ramp" — dense ASCII (paper brightness → glyph density)
+    //   "poem" — the poem's own characters, laid top to bottom, right to
+    //            left, the way the scroll reads
+    // Red seals stay red. Everything is real text in <pre>s (not a canvas),
     // so the magnifier's page copy shows it too.
     type AsciiMode = "off" | "ramp" | "poem";
     const MODES: AsciiMode[] = ["off", "ramp", "poem"];
     const RAMP = " .:-=+*#%@";
+    const DENSE = "@@@%%##&&$WM8B";
     const POEM_CHARS = [...poem.title.map((t) => t[0]).join("") + poem.couplets.map((c) => c[0]).join("")]
       .filter((ch) => !"，。、".includes(ch));
+    const IDEO_SPACE = "　";
     const html = document.documentElement;
     const asciiBtn = document.getElementById("ascii-toggle")!;
     const arts = [...document.querySelectorAll(".ascii-art")] as HTMLElement[];
+    const field = document.querySelector(".ascii-field") as HTMLElement;
+    const split = document.querySelector(".split") as HTMLElement;
     const bandImg = document.querySelector(".callig-cell img") as HTMLImageElement;
     let asciiMode: AsciiMode = "off";
+
+    // cell sizes, px: very fine. Ramp cells are a monospace glyph (0.6em by
+    // 1em); poem cells are square CJK glyphs.
+    const cellW = () => (asciiMode === "poem" ? (innerWidth < 600 ? 5 : 6) : innerWidth < 600 ? 2.2 : 2.6);
+    const cellH = () => (asciiMode === "poem" ? cellW() : cellW() / 0.6);
 
     const loadImage = (src: string) =>
       new Promise<HTMLImageElement>((resolve, reject) => {
@@ -409,8 +403,8 @@ const asciiNameCols = Math.max(...asciiNameRows.map((r) => r.length));
       return ctx.getImageData(0, 0, cols, rows).data;
     };
     // ink 0..1 per cell, stretched so bare paper reads 0 and the darkest
-    // strokes read 1; seal = vermilion seal stamp. Each cell is sampled
-    // 3x3 and blends mean with max, so hairline brush strokes survive.
+    // strokes read 1; seal = vermilion seal stamp. Each cell is sampled 3x3
+    // and leans on its darkest sample, so hairline strokes still cut a hole.
     const SUB = 3;
     const inkMap = (d: Uint8ClampedArray, cols: number, rows: number) => {
       const n = cols * rows, W3 = cols * SUB;
@@ -429,12 +423,12 @@ const asciiNameCols = Math.max(...asciiNameRows.map((r) => r.length));
             }
           }
           const i = y * cols + x;
-          ink[i] = 0.5 * sum / (SUB * SUB) + 0.5 * max;
+          ink[i] = 0.4 * sum / (SUB * SUB) + 0.6 * max;
           seal[i] = red * 2 > SUB * SUB ? 1 : 0;
         }
       }
       const sorted = Float32Array.from(ink).sort();
-      const lo = sorted[Math.floor(n * 0.7)], hi = sorted[Math.floor(n * 0.985)];
+      const lo = sorted[Math.floor(n * 0.6)], hi = sorted[Math.floor(n * 0.97)];
       for (let i = 0; i < n; i++) ink[i] = Math.min(1, Math.max(0, (ink[i] - lo) / (hi - lo || 1)));
       return { ink, seal };
     };
@@ -446,16 +440,40 @@ const asciiNameCols = Math.max(...asciiNameRows.map((r) => r.length));
       flush();
       return out;
     };
-
-    const fit = () => {
-      const cell = arts[0].parentElement!;
-      const w = arts[0].offsetWidth, h = arts[0].offsetHeight;
-      if (!w || !h) return;
-      const t = `scale(${cell.clientWidth / w}, ${cell.clientHeight / h})`;
-      arts.forEach((a) => (a.style.transform = t));
+    // poem characters in reading order: down each column, columns right to left
+    const poemGrid = (cols: number, rows: number, keep: (i: number) => boolean) => {
+      const grid: string[] = new Array(cols * rows).fill(IDEO_SPACE);
+      let k = 0;
+      for (let x = cols - 1; x >= 0; x--) {
+        for (let y = 0; y < rows; y++) {
+          const i = y * cols + x;
+          if (keep(i)) grid[i] = POEM_CHARS[k++ % POEM_CHARS.length];
+        }
+      }
+      return grid;
+    };
+    const toLines = (cells: string[], cls: string[] | null, cols: number, rows: number) => {
+      const lines: string[] = [];
+      for (let y = 0; y < rows; y++) {
+        const row = cells.slice(y * cols, (y + 1) * cols);
+        lines.push(cls ? runs(row, cls.slice(y * cols, (y + 1) * cols)) : row.join(""));
+      }
+      return lines.join("\n");
     };
 
-    let drawn = "", drawSeq = 0;
+    // stretch a <pre> (laid out at a comfortable 10px) onto its box
+    const fitTo = (pres: HTMLElement[], box: HTMLElement) => {
+      const w = pres[0].offsetWidth, h = pres[0].offsetHeight;
+      if (!w || !h) return;
+      const t = `scale(${box.clientWidth / w}, ${box.clientHeight / h})`;
+      pres.forEach((p) => (p.style.transform = t));
+    };
+    const fitAll = () => {
+      fitTo(arts, arts[0].parentElement!);
+      fitTo([field], split);
+    };
+
+    let bandKey = "", bandSeq = 0;
     const drawBand = async () => {
       if (asciiMode === "off") return;
       const cell = arts[0].parentElement!;
@@ -463,109 +481,97 @@ const asciiNameCols = Math.max(...asciiNameRows.map((r) => r.length));
       if (!W || !H) return;
       const src = bandImg.currentSrc || bandImg.src;
       const poemMode = asciiMode === "poem";
-      const cw = poemMode ? (W < 600 ? 7 : 9) : W < 600 ? 3 : 3.5; // target cell width, px
-      const cols = Math.round(W / cw);
-      // ramp glyph cells are ~0.6em wide by 1em tall; CJK cells are square
-      const rows = Math.max(4, Math.round((H * cols) / W / (poemMode ? 1 : 1 / 0.6)));
+      const cols = Math.round(W / cellW()), rows = Math.max(4, Math.round(H / cellH()));
       const key = `${asciiMode}|${src}|${cols}x${rows}`;
-      if (key === drawn) return fit();
-      const seq = ++drawSeq;
+      if (key === bandKey) return fitTo(arts, cell);
+      const seq = ++bandSeq;
       const img = await loadImage(src);
-      if (seq !== drawSeq) return;
+      if (seq !== bandSeq) return;
       const { ink, seal } = inkMap(pixels(img, cols * SUB, rows * SUB), cols, rows);
-      const lines: string[] = [];
+      const n = cols * rows;
+      const cls: string[] = new Array(n);
+      let cells: string[];
       if (!poemMode) {
-        for (let y = 0; y < rows; y++) {
-          const cells: string[] = [], cls: string[] = [];
-          for (let x = 0; x < cols; x++) {
-            const i = y * cols + x;
-            cells.push(RAMP[Math.min(RAMP.length - 1, Math.round(Math.pow(ink[i], 0.7) * (RAMP.length - 0.6)))]);
-            cls.push(seal[i] ? "seal" : "");
-          }
-          lines.push(runs(cells, cls));
+        // inverted: bright paper → densest glyph, ink → blank
+        cells = new Array(n);
+        for (let i = 0; i < n; i++) {
+          const paper = 1 - ink[i];
+          cells[i] = RAMP[Math.min(RAMP.length - 1, Math.round(Math.pow(paper, 2.2) * (RAMP.length - 1)))];
+          cls[i] = seal[i] ? "seal" : "";
         }
       } else {
-        const grid: string[] = new Array(cols * rows).fill("　");
-        const cls: string[] = new Array(cols * rows).fill("");
-        let k = 0;
-        for (let x = cols - 1; x >= 0; x--) {
-          for (let y = 0; y < rows; y++) {
-            const i = y * cols + x;
-            if (ink[i] < 0.16 && !seal[i]) continue;
-            grid[i] = POEM_CHARS[k++ % POEM_CHARS.length];
-            cls[i] = seal[i] ? "seal" : `o${Math.min(4, 1 + Math.floor(ink[i] * 4))}`;
-          }
-        }
-        for (let y = 0; y < rows; y++) {
-          lines.push(runs(grid.slice(y * cols, (y + 1) * cols), cls.slice(y * cols, (y + 1) * cols)));
+        cells = poemGrid(cols, rows, (i) => seal[i] === 1 || ink[i] < 0.3);
+        for (let i = 0; i < n; i++) {
+          cls[i] = seal[i] ? "seal" : "";
         }
       }
-      const markup = lines.join("\n");
+      const markup = toLines(cells, cls, cols, rows);
       arts.forEach((a) => {
         a.classList.toggle("is-poem", poemMode);
         a.innerHTML = markup;
       });
-      drawn = key;
-      fit();
+      bandKey = key;
+      fitTo(arts, cell);
     };
 
-    // 吴皓汉 has no FIGlet font, so set it in the page's CJK face and sample
-    const drawCjkName = () => {
-      const pre = document.querySelector(".ascii-name-zh") as HTMLElement;
-      if (pre.textContent) return;
-      const text = pre.dataset.text!;
-      const per = 14; // columns per glyph
-      const cols = per * text.length, rows = Math.round((per * 0.6) * 1.0);
-      const S = 8; // supersample
-      const c = document.createElement("canvas");
-      c.width = cols * S;
-      c.height = Math.round(rows * S / 0.6);
-      const ctx = c.getContext("2d")!;
-      ctx.fillStyle = "#fff";
-      ctx.fillRect(0, 0, c.width, c.height);
-      ctx.fillStyle = "#000";
-      ctx.font = `700 ${c.height * 0.92}px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif`;
-      ctx.textBaseline = "middle";
-      ctx.textAlign = "center";
-      [...text].forEach((ch, i) => ctx.fillText(ch, (i + 0.5) * per * S, c.height / 2));
-      const d = pixels(c, cols, rows);
-      const out: string[] = [];
-      for (let y = 0; y < rows; y++) {
-        let line = "";
-        for (let x = 0; x < cols; x++) {
-          const v = 1 - d[(y * cols + x) * 4] / 255;
-          line += RAMP[Math.round(v * (RAMP.length - 1))];
-        }
-        out.push(line.replace(/\s+$/, ""));
+    // the field behind the text: dense, slightly uneven, like a woven ground
+    let fieldKey = "";
+    const drawField = () => {
+      if (asciiMode === "off") return;
+      const W = split.clientWidth, H = split.clientHeight;
+      if (!W || !H) return;
+      const poemMode = asciiMode === "poem";
+      const cols = Math.round(W / cellW()), rows = Math.round(H / cellH());
+      const key = `${asciiMode}|${cols}x${rows}`;
+      if (key === fieldKey) return fitTo([field], split);
+      const n = cols * rows;
+      let cells: string[];
+      if (!poemMode) {
+        cells = new Array(n);
+        for (let i = 0; i < n; i++) cells[i] = DENSE[(Math.random() * DENSE.length) | 0];
+      } else {
+        cells = poemGrid(cols, rows, () => true);
       }
-      pre.style.setProperty("--cols", String(cols));
-      pre.textContent = out.join("\n");
+      field.classList.toggle("is-poem", poemMode);
+      field.textContent = toLines(cells, null, cols, rows);
+      fieldKey = key;
+      fitTo([field], split);
     };
+
+    const redraw = () => { drawField(); drawBand(); };
+    let redrawTimer = 0;
+    const scheduleRedraw = () => {
+      if (asciiMode === "off") return;
+      fitAll();
+      clearTimeout(redrawTimer);
+      redrawTimer = window.setTimeout(redraw, 150);
+    };
+    // the field must track the text column's height (language, wrapping)
+    new ResizeObserver(scheduleRedraw).observe(split);
+    window.addEventListener("resize", scheduleRedraw);
 
     const setAscii = (m: AsciiMode) => {
       asciiMode = m;
       html.classList.toggle("ascii-mode", m !== "off");
       html.classList.toggle("ascii-poem", m === "poem");
       const next = MODES[(MODES.indexOf(m) + 1) % MODES.length];
-      const label = { off: "Switch to the normal view", ramp: "Switch to ASCII view", poem: "Switch to ASCII view drawn in the poem's characters" }[next];
+      const label = { off: "Switch to the normal view", ramp: "Switch to ASCII view", poem: "Switch to ASCII view woven from the poem's characters" }[next];
       asciiBtn.setAttribute("aria-label", label);
       asciiBtn.title = label;
       try {
         if (m === "off") localStorage.removeItem("ascii");
         else localStorage.setItem("ascii", m);
       } catch {}
-      if (m !== "off") {
-        document.fonts.ready.then(() => { drawCjkName(); drawBand(); });
+      if (m === "off") {
+        // drop the big text nodes so the magnifier's copy stays light
+        field.textContent = "";
+        arts.forEach((a) => (a.textContent = ""));
+        fieldKey = bandKey = "";
+      } else {
+        document.fonts.ready.then(redraw);
       }
     };
     asciiBtn.addEventListener("click", () => setAscii(MODES[(MODES.indexOf(asciiMode) + 1) % MODES.length]));
-    let asciiResize = 0;
-    window.addEventListener("resize", () => {
-      if (asciiMode === "off") return;
-      fit();
-      clearTimeout(asciiResize);
-      asciiResize = window.setTimeout(drawBand, 150);
-    });
     let saved: string | null = null;
     try { saved = localStorage.getItem("ascii"); } catch {}
     setAscii(saved === "ramp" || saved === "poem" ? saved : "off");
@@ -768,7 +774,7 @@ const asciiNameCols = Math.max(...asciiNameRows.map((r) => r.length));
 
   .split {
     display: grid;
-    /* minmax(0, …) so the ASCII view's long ==== rules can't widen the page */
+    /* minmax(0, …) so wide ASCII-view content can't widen the page */
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -862,7 +868,10 @@ const asciiNameCols = Math.max(...asciiNameRows.map((r) => r.length));
   .proj a { color: var(--fg); text-decoration: underline; text-underline-offset: 2px; }
   .proj a:hover { color: var(--muted); }
 
-  /* ---- ASCII view ---------------------------------------------------- */
+  /* ---- ASCII view ----------------------------------------------------
+     Black canvas, a fine white character field over it, and the page's
+     text painted black on top with a black stroke, so every letter reads
+     as a hole cut out of the field. */
   .callig-cell {
     position: relative;
     flex: none;
@@ -870,21 +879,25 @@ const asciiNameCols = Math.max(...asciiNameRows.map((r) => r.length));
     overflow: hidden;
   }
   .ascii-art,
-  .ascii-name { display: none; }
+  .ascii-field { display: none; }
   .tbtn .icon-glyph { display: none; font-size: 0.95rem; line-height: 1; }
 
   :global(html.ascii-mode) {
-    --seal: #b8322a;
-  }
-  :global(html.ascii-mode.dark-mode) {
-    --seal: #e25a4c;
+    --bg: #000;
+    --fg: #f4f2ec;
+    --muted: #f4f2ec;
+    --border: #f4f2ec;
+    --hole: #000;
+    --seal: #e0483a;
   }
   :global(html.ascii-mode body) {
     font-family: "DM Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     letter-spacing: 0;
   }
-  :global(html.ascii-mode) .callig-band img { opacity: 0; }
-  :global(html.ascii-mode) .ascii-art {
+
+  /* shared: a <pre> laid out at 10px, then stretched onto its box */
+  :global(html.ascii-mode) .ascii-art,
+  :global(html.ascii-mode) .ascii-field {
     display: block;
     position: absolute;
     top: 0;
@@ -897,75 +910,102 @@ const asciiNameCols = Math.max(...asciiNameRows.map((r) => r.length));
     pointer-events: none;
     user-select: none;
   }
-  :global(html.ascii-mode) .ascii-art.is-poem {
+  :global(html.ascii-mode) .ascii-field,
+  :global(html.ascii-mode) .ascii-art:not(.is-poem) {
+    font-weight: 700;
+    line-height: 8px;
+    color: #fff;
+  }
+  :global(html.ascii-mode) .ascii-art.is-poem,
+  :global(html.ascii-mode) .ascii-field.is-poem {
     font-family: "Noto Serif TC", "Songti TC", "SimSun", "Noto Sans SC", serif;
   }
   .ascii-art :global(.seal) { color: var(--seal); }
-  .ascii-art :global(.o1) { opacity: 0.3; }
-  .ascii-art :global(.o2) { opacity: 0.55; }
-  .ascii-art :global(.o3) { opacity: 0.8; }
 
-  /* toolbar icon shows what the next click turns on */
+  :global(html.ascii-mode) .callig-band { background: var(--bg); }
+  :global(html.ascii-mode) .callig-band img { opacity: 0; }
+
+  :global(html.ascii-mode) .split {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  :global(html.ascii-mode) .ascii-field { z-index: -1; }
+
+  /* the carve: black letters with a black stroke painted under the fill */
+  :global(html.ascii-mode) .text,
+  :global(html.ascii-mode) .text *,
+  :global(html.ascii-mode) .band-credit,
+  :global(html.ascii-mode) .band-credit * {
+    color: var(--hole) !important;
+    -webkit-text-stroke: 0.09em var(--hole);
+    paint-order: stroke fill;
+    text-shadow: 0 0 0.12em var(--hole), 0 0 0.12em var(--hole);
+  }
+  /* CJK strokes are dense: a lighter carve keeps them open */
+  :global(html.ascii-mode.lang-zh) .text,
+  :global(html.ascii-mode.lang-zh) .text * { -webkit-text-stroke-width: 0.03em; text-shadow: 0 0 0.08em var(--hole); }
+  /* on phones the credit sits on the band's black strip, not on the field */
+  @media (max-width: 599px) {
+    :global(html.ascii-mode) .band-credit,
+    :global(html.ascii-mode) .band-credit * {
+      color: var(--fg) !important;
+      -webkit-text-stroke: 0;
+      text-shadow: none;
+    }
+  }
+  :global(html.ascii-mode) .text a,
+  :global(html.ascii-mode) .text button { text-decoration: none; }
+  :global(html.ascii-mode) .text a:hover,
+  :global(html.ascii-mode) .copy-email:hover { text-decoration: underline; text-decoration-thickness: 0.2em; }
+  :global(html.ascii-mode) .band-credit { font-size: 0.72rem; }
+
+  :global(html.ascii-mode) h1 {
+    font-size: clamp(3rem, 10vw, 7.5rem);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    -webkit-text-stroke-width: 0.03em;
+  }
+  :global(html.ascii-mode) .meta { text-transform: none; letter-spacing: 0; font-size: 0.9rem; }
+  :global(html.ascii-mode) .meta::before { content: "// "; }
+  :global(html.ascii-mode) .contacts { font-size: 0.9rem; }
+  :global(html.ascii-mode) .contacts a::before,
+  :global(html.ascii-mode) .copy-email::before { content: "["; }
+  :global(html.ascii-mode) .contacts a::after,
+  :global(html.ascii-mode) .copy-email::after { content: "]"; }
+  :global(html.ascii-mode) .text { font-size: 1.05rem; font-weight: 700; }
+  :global(html.ascii-mode) .bio { font-size: 1.15rem; }
+  :global(html.ascii-mode) .bio::before { content: "> "; }
+  :global(html.ascii-mode) h2 { font-size: 1rem; letter-spacing: 0.04em; }
+  :global(html.ascii-mode) h2::before { content: "== "; }
+  :global(html.ascii-mode) h2::after { content: " =="; }
+  :global(html.ascii-mode) .entry .period { font-size: 0.85rem; }
+  :global(html.ascii-mode) .entry .period::before { content: "["; }
+  :global(html.ascii-mode) .entry .period::after { content: "]"; }
+  :global(html.ascii-mode) .proj h3 { font-size: 1.15rem; }
+  :global(html.ascii-mode) .proj h3::before { content: "* "; }
+  :global(html.ascii-mode) .proj p,
+  :global(html.ascii-mode) .proj .tech { padding-left: 2ch; }
+  :global(html.ascii-mode) .proj .tech { font-size: 0.85rem; }
+  :global(html.ascii-mode) .proj .tech::before { content: "$ "; }
+
+  /* toolbar: solid black keys punched into the field */
+  :global(html.ascii-mode) .tbtn {
+    background: var(--hole);
+    color: var(--fg);
+    border-color: var(--hole);
+  }
+  :global(html.ascii-mode) .tbtn:hover { background: var(--fg); color: var(--hole); }
+  /* the canvas is always black here, so the light/dark key steps aside */
+  :global(html.ascii-mode) #dark-toggle { display: none; }
+  /* the ASCII key shows what the next click turns on */
   :global(html.ascii-mode) .tbtn .icon-term { display: none; }
   :global(html.ascii-mode:not(.ascii-poem)) .tbtn .icon-zi { display: block; }
   :global(html.ascii-poem) .tbtn .icon-ramp { display: block; }
-  :global(html.ascii-mode) .tbtn { border-style: dashed; }
 
-  :global(html.ascii-mode) .band-credit::after { content: " · re-drawn in ASCII"; }
-  :global(html.ascii-poem) .band-credit::after { content: " · re-drawn in its own characters"; }
-
-  /* the real h1 stays for screen readers and search; the banner is visual */
-  :global(html.ascii-mode) h1 {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-  :global(html.ascii-mode) .ascii-name-en { display: block; }
-  :global(html.ascii-mode.lang-zh) .ascii-name-en { display: none; }
-  :global(html.ascii-mode.lang-zh) .ascii-name-zh { display: block; }
-  .ascii-name {
-    margin: 0.4rem 0 0;
-    /* fit the banner's columns into the text column on small screens */
-    font: 700 min(16px, calc((100vw - 3.5rem) / (var(--cols, 60) * 0.6))) / 1.05
-      "DM Mono", ui-monospace, Menlo, Consolas, monospace;
-    white-space: pre;
-    color: var(--fg);
-  }
-  .ascii-name-zh { line-height: 1; letter-spacing: 0; }
-
-  :global(html.ascii-mode) .meta { text-transform: none; letter-spacing: 0; }
-  :global(html.ascii-mode) .meta::before { content: "// "; }
-  :global(html.ascii-mode) .contacts a::before,
-  :global(html.ascii-mode) .copy-email::before { content: "["; color: var(--muted); }
-  :global(html.ascii-mode) .contacts a::after,
-  :global(html.ascii-mode) .copy-email::after { content: "]"; color: var(--muted); }
-  :global(html.ascii-mode) .contacts a { text-decoration: none; }
-  :global(html.ascii-mode) .bio::before { content: "> "; color: var(--muted); }
-
-  :global(html.ascii-mode) h2 {
-    display: flex;
-    gap: 1ch;
-    overflow: hidden;
-    white-space: nowrap;
-    letter-spacing: 0;
-  }
-  :global(html.ascii-mode) h2::before { content: "=="; }
-  :global(html.ascii-mode) h2::after {
-    content: "================================================================================================================================================================";
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-  }
-  :global(html.ascii-mode) .entry .period::before { content: "["; }
-  :global(html.ascii-mode) .entry .period::after { content: "]"; }
-  :global(html.ascii-mode) .proj h3 { font-size: 1rem; }
-  :global(html.ascii-mode) .proj h3::before { content: "* "; color: var(--muted); }
-  :global(html.ascii-mode) .proj p,
-  :global(html.ascii-mode) .proj .tech { padding-left: 2ch; }
-  :global(html.ascii-mode) .proj .tech::before { content: "$ "; }
+  :global(html.ascii-mode) .band-credit::after { content: " · inverted into ASCII"; }
+  :global(html.ascii-poem) .band-credit::after { content: " · inverted into its own characters"; }
 
   :global(:focus-visible) { outline: 2px solid var(--fg); outline-offset: 3px; }
 
