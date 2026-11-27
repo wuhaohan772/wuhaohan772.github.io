@@ -11,3 +11,4 @@ Glossary for this site's design language.
 - **Entry** — one item in Experience or Education: period, org, role/degree, one-line note.
 - **Design tokens** — CSS variables in `src/styles/global.css`; the only place colors, type scale, and spacing are defined. Generated from `design-system/haohan-wu-personal-site/MASTER.md` ("Exaggerated Minimalism").
 - **Placeholder content** — all text marked PLACEHOLDER in `src/data/*.json` awaits real content; structure is final, words are not.
+- **ASCII view** — third toolbar button (`>_`) cycles normal → ASCII → poem-glyph ASCII. Whole page goes monospace with text-mode ornaments (`== HEADINGS ====`, `[links]`, `$ tech`), the name becomes FIGlet lettering (CJK name sampled from the font at runtime), and the scroll is re-drawn as text: a density ramp (` .:-=+*#%@`), or the poem's own characters laid in columns right-to-left. Seals stay red. Saved in `localStorage.ascii`.
