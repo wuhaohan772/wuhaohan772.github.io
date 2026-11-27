@@ -356,8 +356,8 @@ const shortDescZh: Record<string, string> = {
     }
 
     // ---- ASCII view ---------------------------------------------------------
-    // A black canvas under a very fine, dense field of white characters; the
-    // page's text is carved out of the field as black negative space (styles
+    // A white canvas under a very fine, dense field of black characters; the
+    // page's text is carved out of the field as white negative space (styles
     // under html.ascii-mode). The scroll is inverted the same way: its paper
     // becomes the field and Zhu Yunming's brush strokes are the holes. Two
     // alphabets for the field:
@@ -869,8 +869,8 @@ const shortDescZh: Record<string, string> = {
   .proj a:hover { color: var(--muted); }
 
   /* ---- ASCII view ----------------------------------------------------
-     Black canvas, a fine white character field over it, and the page's
-     text painted black on top with a black stroke, so every letter reads
+     White canvas, a fine black character field over it, and the page's
+     text painted white on top with a white stroke, so every letter reads
      as a hole cut out of the field. */
   .callig-cell {
     position: relative;
@@ -883,12 +883,12 @@ const shortDescZh: Record<string, string> = {
   .tbtn .icon-glyph { display: none; font-size: 0.95rem; line-height: 1; }
 
   :global(html.ascii-mode) {
-    --bg: #000;
-    --fg: #f4f2ec;
-    --muted: #f4f2ec;
-    --border: #f4f2ec;
-    --hole: #000;
-    --seal: #e0483a;
+    --bg: #fbfaf7;
+    --fg: #0b0b0b;
+    --muted: #0b0b0b;
+    --border: #0b0b0b;
+    --hole: #fbfaf7;
+    --seal: #c8352a;
   }
   :global(html.ascii-mode body) {
     font-family: "DM Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
@@ -914,7 +914,7 @@ const shortDescZh: Record<string, string> = {
   :global(html.ascii-mode) .ascii-art:not(.is-poem) {
     font-weight: 700;
     line-height: 8px;
-    color: #fff;
+    color: var(--fg);
   }
   :global(html.ascii-mode) .ascii-art.is-poem,
   :global(html.ascii-mode) .ascii-field.is-poem {
@@ -932,7 +932,7 @@ const shortDescZh: Record<string, string> = {
   }
   :global(html.ascii-mode) .ascii-field { z-index: -1; }
 
-  /* the carve: black letters with a black stroke painted under the fill */
+  /* the carve: white letters with a white stroke painted under the fill */
   :global(html.ascii-mode) .text,
   :global(html.ascii-mode) .text *,
   :global(html.ascii-mode) .band-credit,
@@ -945,7 +945,7 @@ const shortDescZh: Record<string, string> = {
   /* CJK strokes are dense: a lighter carve keeps them open */
   :global(html.ascii-mode.lang-zh) .text,
   :global(html.ascii-mode.lang-zh) .text * { -webkit-text-stroke-width: 0.03em; text-shadow: 0 0 0.08em var(--hole); }
-  /* on phones the credit sits on the band's black strip, not on the field */
+  /* on phones the credit sits on the band's white strip, not on the field */
   @media (max-width: 599px) {
     :global(html.ascii-mode) .band-credit,
     :global(html.ascii-mode) .band-credit * {
@@ -990,14 +990,14 @@ const shortDescZh: Record<string, string> = {
   :global(html.ascii-mode) .proj .tech { font-size: 0.85rem; }
   :global(html.ascii-mode) .proj .tech::before { content: "$ "; }
 
-  /* toolbar: solid black keys punched into the field */
+  /* toolbar: solid white keys punched into the field */
   :global(html.ascii-mode) .tbtn {
     background: var(--hole);
     color: var(--fg);
     border-color: var(--hole);
   }
   :global(html.ascii-mode) .tbtn:hover { background: var(--fg); color: var(--hole); }
-  /* the canvas is always black here, so the light/dark key steps aside */
+  /* the canvas is always white here, so the light/dark key steps aside */
   :global(html.ascii-mode) #dark-toggle { display: none; }
   /* the ASCII key shows what the next click turns on */
   :global(html.ascii-mode) .tbtn .icon-term { display: none; }
