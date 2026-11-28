@@ -368,8 +368,36 @@ const shortDescZh: Record<string, string> = {
     // so the magnifier's page copy shows it too.
     type AsciiMode = "off" | "ramp" | "poem";
     const MODES: AsciiMode[] = ["off", "ramp", "poem"];
-    const RAMP = " .:-=+*#%@";
-    const DENSE = "@@@%%##&&$WM8B";
+    // 68 steps of glyph density, light to dark ('&' and '<' '>' left out so
+    // the markup needs no escaping)
+    const GRAY = " .'`^\",:;Il!i~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW8%B@$";
+    const glyph = (d: number) => GRAY[Math.min(GRAY.length - 1, Math.max(0, Math.round(d * (GRAY.length - 1))))];
+    // smooth value noise, 0..1: two octaves plus grain, so the field drifts
+    // through soft clouds of grey instead of reading as flat static
+    const toneMap = (cols: number, rows: number, sx: number, sy: number) => {
+      const octave = (scale: number) => {
+        const gw = Math.ceil(cols / (scale * sx)) + 2, gh = Math.ceil(rows / (scale * sy)) + 2;
+        const g = Float32Array.from({ length: gw * gh }, Math.random);
+        const out = new Float32Array(cols * rows);
+        const ease = (t: number) => t * t * (3 - 2 * t);
+        for (let y = 0; y < rows; y++) {
+          const fy = y / (scale * sy), y0 = fy | 0, ty = ease(fy - y0);
+          for (let x = 0; x < cols; x++) {
+            const fx = x / (scale * sx), x0 = fx | 0, tx = ease(fx - x0);
+            const a = g[y0 * gw + x0], b = g[y0 * gw + x0 + 1];
+            const c = g[(y0 + 1) * gw + x0], d = g[(y0 + 1) * gw + x0 + 1];
+            out[y * cols + x] = (a + (b - a) * tx) * (1 - ty) + (c + (d - c) * tx) * ty;
+          }
+        }
+        return out;
+      };
+      const big = octave(90), small = octave(18);
+      return big.map((v, i) => 0.6 * v + 0.28 * small[i] + 0.12 * Math.random());
+    };
+    // ramp cells are 0.6x as wide as tall, so stretch the noise to keep it round
+    const tones = (cols: number, rows: number) =>
+      asciiMode === "poem" ? toneMap(cols, rows, 1, 1) : toneMap(cols, rows, 1, 0.6);
+    const shade = (d: number) => (d < 0.86 ? "o1" : d < 0.91 ? "o2" : "");
     const POEM_CHARS = [...poem.title.map((t) => t[0]).join("") + poem.couplets.map((c) => c[0]).join("")]
       .filter((ch) => !"，。、".includes(ch));
     const IDEO_SPACE = "　";
@@ -489,20 +517,22 @@ const shortDescZh: Record<string, string> = {
       if (seq !== bandSeq) return;
       const { ink, seal } = inkMap(pixels(img, cols * SUB, rows * SUB), cols, rows);
       const n = cols * rows;
+      const tone = tones(cols, rows);
       const cls: string[] = new Array(n);
       let cells: string[];
       if (!poemMode) {
-        // inverted: bright paper → densest glyph, ink → blank
+        // inverted: bright paper → dense glyphs in drifting greys, stroke
+        // edges fade through the light end of the ramp, ink → blank
         cells = new Array(n);
         for (let i = 0; i < n; i++) {
-          const paper = 1 - ink[i];
-          cells[i] = RAMP[Math.min(RAMP.length - 1, Math.round(Math.pow(paper, 2.2) * (RAMP.length - 1)))];
+          const paper = Math.pow(1 - ink[i], 1.4);
+          cells[i] = paper < 0.04 ? " " : glyph(paper * (0.82 + 0.18 * tone[i]));
           cls[i] = seal[i] ? "seal" : "";
         }
       } else {
         cells = poemGrid(cols, rows, (i) => seal[i] === 1 || ink[i] < 0.3);
         for (let i = 0; i < n; i++) {
-          cls[i] = seal[i] ? "seal" : "";
+          cls[i] = seal[i] ? "seal" : shade(0.82 + 0.18 * tone[i]);
         }
       }
       const markup = toLines(cells, cls, cols, rows);
@@ -514,7 +544,7 @@ const shortDescZh: Record<string, string> = {
       fitTo(arts, cell);
     };
 
-    // the field behind the text: dense, slightly uneven, like a woven ground
+    // the field behind the text: dense, in soft drifts of grey
     let fieldKey = "";
     const drawField = () => {
       if (asciiMode === "off") return;
@@ -525,15 +555,18 @@ const shortDescZh: Record<string, string> = {
       const key = `${asciiMode}|${cols}x${rows}`;
       if (key === fieldKey) return fitTo([field], split);
       const n = cols * rows;
-      let cells: string[];
+      const tone = tones(cols, rows);
+      let markup: string;
       if (!poemMode) {
-        cells = new Array(n);
-        for (let i = 0; i < n; i++) cells[i] = DENSE[(Math.random() * DENSE.length) | 0];
+        const cells: string[] = new Array(n);
+        for (let i = 0; i < n; i++) cells[i] = glyph(0.82 + 0.18 * tone[i]);
+        markup = toLines(cells, null, cols, rows);
       } else {
-        cells = poemGrid(cols, rows, () => true);
+        const cells = poemGrid(cols, rows, () => true);
+        markup = toLines(cells, Array.from(tone, (t) => shade(0.82 + 0.18 * t)), cols, rows);
       }
       field.classList.toggle("is-poem", poemMode);
-      field.textContent = toLines(cells, null, cols, rows);
+      field.innerHTML = markup;
       fieldKey = key;
       fitTo([field], split);
     };
@@ -911,7 +944,7 @@ const shortDescZh: Record<string, string> = {
     user-select: none;
   }
   :global(html.ascii-mode) .ascii-field,
-  :global(html.ascii-mode) .ascii-art:not(.is-poem) {
+  :global(html.ascii-mode) .ascii-art {
     font-weight: 700;
     line-height: 8px;
     color: var(--fg);
@@ -921,6 +954,9 @@ const shortDescZh: Record<string, string> = {
     font-family: "Noto Serif TC", "Songti TC", "SimSun", "Noto Sans SC", serif;
   }
   .ascii-art :global(.seal) { color: var(--seal); }
+  /* grey steps for the poem's CJK glyphs, which have no density ramp */
+  :global(html.ascii-mode) :is(.ascii-art, .ascii-field) :global(.o1) { opacity: 0.6; }
+  :global(html.ascii-mode) :is(.ascii-art, .ascii-field) :global(.o2) { opacity: 0.8; }
 
   :global(html.ascii-mode) .callig-band { background: var(--bg); }
   :global(html.ascii-mode) .callig-band img { opacity: 0; }
