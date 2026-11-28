@@ -371,6 +371,7 @@ const shortDescZh: Record<string, string> = {
     // 68 steps of glyph density, light to dark ('&' and '<' '>' left out so
     // the markup needs no escaping)
     const GRAY = " .'`^\",:;Il!i~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW8%B@$";
+    const HEAVY = "#MW8%B@$";
     const glyph = (d: number) => GRAY[Math.min(GRAY.length - 1, Math.max(0, Math.round(d * (GRAY.length - 1))))];
     // smooth value noise, 0..1: two octaves plus grain, so the field drifts
     // through soft clouds of grey instead of reading as flat static
@@ -411,7 +412,7 @@ const shortDescZh: Record<string, string> = {
 
     // cell sizes, px: very fine. Ramp cells are a monospace glyph (0.6em by
     // 1em); poem cells are square CJK glyphs.
-    const cellW = () => (asciiMode === "poem" ? (innerWidth < 600 ? 5 : 6) : innerWidth < 600 ? 2.2 : 2.6);
+    const cellW = () => (asciiMode === "poem" ? (innerWidth < 600 ? 5 : 6) : innerWidth < 600 ? 1.9 : 2.2);
     const cellH = () => (asciiMode === "poem" ? cellW() : cellW() / 0.6);
 
     const loadImage = (src: string) =>
@@ -544,22 +545,103 @@ const shortDescZh: Record<string, string> = {
       fitTo(arts, cell);
     };
 
-    // the field behind the text: dense, in soft drifts of grey
-    let fieldKey = "";
+    // Where the page's text sits, as cell coverage 0..1. In the ramp style
+    // the text is not painted at all: the field simply leaves characters out
+    // wherever a letter falls, and thins them where a letter only grazes a
+    // cell, so every letter is negative space between ASCII glyphs. Each
+    // character (and each CSS ornament like "[" or "== ") is redrawn on a
+    // small canvas at its on-screen spot in its own font, then sampled 3x3.
+    const SPLIT_TEXT = [".text", ".band-credit"];
+    const textCoverage = (cols: number, rows: number) => {
+      const S = 3, W = split.clientWidth, H = split.clientHeight;
+      const c = document.createElement("canvas");
+      c.width = cols * S;
+      c.height = rows * S;
+      const ctx = c.getContext("2d", { willReadFrequently: true })!;
+      ctx.setTransform((cols * S) / W, 0, 0, (rows * S) / H, 0, 0);
+      const o = split.getBoundingClientRect();
+      const range = document.createRange();
+      const setFont = (cs: CSSStyleDeclaration) => {
+        ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+        ctx.lineWidth = parseFloat(cs.fontSize) * 0.07;
+      };
+      const put = (text: string, x: number, top: number) => {
+        const y = top - o.top + ctx.measureText(text).fontBoundingBoxAscent;
+        ctx.fillText(text, x - o.left, y);
+        ctx.strokeText(text, x - o.left, y);
+      };
+      const pseudo = (el: Element, which: "::before" | "::after") => {
+        const v = getComputedStyle(el, which).content;
+        return v && v !== "none" && v !== "normal" ? v.replace(/^"|"$/g, "") : "";
+      };
+      const roots = SPLIT_TEXT.map((q) => document.querySelector(q)).filter(
+        (el) => el && el.getBoundingClientRect().bottom > o.top, // phones: credit sits above the field
+      ) as Element[];
+      for (const root of roots) {
+        // first and last character rect of each element, for its ornaments
+        const firstRect = new Map<Element, DOMRect>(), lastRect = new Map<Element, DOMRect>();
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        for (let node = walker.nextNode() as Text | null; node; node = walker.nextNode() as Text | null) {
+          const el = node.parentElement!;
+          const cs = getComputedStyle(el);
+          if (cs.display === "none" || cs.visibility === "hidden") continue;
+          setFont(cs);
+          const t = node.data;
+          for (let i = 0; i < t.length; ) {
+            const ch = String.fromCodePoint(t.codePointAt(i)!);
+            range.setStart(node, i);
+            range.setEnd(node, i + ch.length);
+            i += ch.length;
+            const r = range.getClientRects()[0];
+            if (!r) continue;
+            for (let a: Element | null = el; a && root.contains(a); a = a.parentElement) {
+              if (!firstRect.has(a)) firstRect.set(a, r);
+              lastRect.set(a, r);
+            }
+            if (ch.trim()) put(ch, r.left, r.top);
+          }
+        }
+        for (const [el, r] of firstRect) {
+          const before = pseudo(el, "::before"), after = pseudo(el, "::after");
+          if (!before && !after) continue;
+          setFont(getComputedStyle(el));
+          if (before) put(before, r.left - ctx.measureText(before).width, r.top);
+          const last = lastRect.get(el)!;
+          if (after) put(after, last.right, last.top);
+        }
+      }
+      const d = ctx.getImageData(0, 0, c.width, c.height).data;
+      const cov = new Float32Array(cols * rows);
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          let a = 0;
+          for (let sy = 0; sy < S; sy++) for (let sx = 0; sx < S; sx++) a += d[((y * S + sy) * c.width + x * S + sx) * 4 + 3];
+          cov[y * cols + x] = a / (S * S * 255);
+        }
+      }
+      return cov;
+    };
+
+    // the field behind the text: near-solid, in faint drifts of grey
     const drawField = () => {
       if (asciiMode === "off") return;
       const W = split.clientWidth, H = split.clientHeight;
       if (!W || !H) return;
       const poemMode = asciiMode === "poem";
       const cols = Math.round(W / cellW()), rows = Math.round(H / cellH());
-      const key = `${asciiMode}|${cols}x${rows}`;
-      if (key === fieldKey) return fitTo([field], split);
       const n = cols * rows;
       const tone = tones(cols, rows);
       let markup: string;
       if (!poemMode) {
+        const cov = textCoverage(cols, rows);
         const cells: string[] = new Array(n);
-        for (let i = 0; i < n; i++) cells[i] = glyph(0.82 + 0.18 * tone[i]);
+        for (let i = 0; i < n; i++) {
+          // open field: only the heaviest glyphs, drifting between them;
+          // fuzzy edge: half-covered cells fade down the ramp, covered ones go blank
+          const c = Math.min(1, cov[i] * 1.6);
+          if (c < 0.04) cells[i] = HEAVY[Math.min(HEAVY.length - 1, ((0.7 * Math.random() + 0.3 * tone[i]) * HEAVY.length) | 0)];
+          else cells[i] = c > 0.92 ? " " : glyph(0.95 * (1 - c));
+        }
         markup = toLines(cells, null, cols, rows);
       } else {
         const cells = poemGrid(cols, rows, () => true);
@@ -567,7 +649,6 @@ const shortDescZh: Record<string, string> = {
       }
       field.classList.toggle("is-poem", poemMode);
       field.innerHTML = markup;
-      fieldKey = key;
       fitTo([field], split);
     };
 
@@ -581,6 +662,8 @@ const shortDescZh: Record<string, string> = {
     };
     // the field must track the text column's height (language, wrapping)
     new ResizeObserver(scheduleRedraw).observe(split);
+    // the carve follows the words: language switch, "copied", and so on
+    new MutationObserver(scheduleRedraw).observe(split.querySelector(".text")!, { subtree: true, childList: true, characterData: true });
     window.addEventListener("resize", scheduleRedraw);
 
     const setAscii = (m: AsciiMode) => {
@@ -599,7 +682,7 @@ const shortDescZh: Record<string, string> = {
         // drop the big text nodes so the magnifier's copy stays light
         field.textContent = "";
         arts.forEach((a) => (a.textContent = ""));
-        fieldKey = bandKey = "";
+        bandKey = "";
       } else {
         document.fonts.ready.then(redraw);
       }
@@ -943,10 +1026,13 @@ const shortDescZh: Record<string, string> = {
     pointer-events: none;
     user-select: none;
   }
+  /* glyphs set a little tighter than their cells, so neighbours touch and
+     the field reads near-solid; fitTo stretches the result back out */
   :global(html.ascii-mode) .ascii-field,
   :global(html.ascii-mode) .ascii-art {
     font-weight: 700;
-    line-height: 8px;
+    line-height: 7px;
+    letter-spacing: -1px;
     color: var(--fg);
   }
   :global(html.ascii-mode) .ascii-art.is-poem,
@@ -981,6 +1067,24 @@ const shortDescZh: Record<string, string> = {
   /* CJK strokes are dense: a lighter carve keeps them open */
   :global(html.ascii-mode.lang-zh) .text,
   :global(html.ascii-mode.lang-zh) .text * { -webkit-text-stroke-width: 0.03em; text-shadow: 0 0 0.08em var(--hole); }
+  /* ramp style: the field itself leaves the letters out (see textCoverage),
+     so the real text stays in place for selection, links and screen
+     readers but paints nothing over the glyphs */
+  :global(html.ascii-mode:not(.ascii-poem)) .text,
+  :global(html.ascii-mode:not(.ascii-poem)) .text * {
+    color: transparent !important;
+    -webkit-text-stroke: 0;
+    text-shadow: none;
+    text-decoration-color: var(--fg);
+  }
+  @media (min-width: 600px) {
+    :global(html.ascii-mode:not(.ascii-poem)) .band-credit,
+    :global(html.ascii-mode:not(.ascii-poem)) .band-credit * {
+      color: transparent !important;
+      -webkit-text-stroke: 0;
+      text-shadow: none;
+    }
+  }
   /* on phones the credit sits on the band's white strip, not on the field */
   @media (max-width: 599px) {
     :global(html.ascii-mode) .band-credit,
