@@ -44,6 +44,7 @@ const shortDescZh: Record<string, string> = {
   "One-Dimensional Heat Equation": "手写 FTCS 数值解法，并与解析解对照验证。",
   "Logistic Regression from Scratch": "手写对数似然梯度上升，不依赖机器学习库。",
 };
+
 ---
 
 <Base>
@@ -52,14 +53,18 @@ const shortDescZh: Record<string, string> = {
          width and loops, so the scroll rolls left-to-right forever -->
     <div class="callig-roll">
       <div class="callig-track">
-        <picture>
-          <source media="(max-width: 599px)" srcset="/images/callig-mobile.jpg" />
-          <img src="/images/callig-full.jpg" alt="Cursive-script calligraphy handscroll by Zhu Yunming" />
-        </picture>
-        <picture aria-hidden="true">
-          <source media="(max-width: 599px)" srcset="/images/callig-mobile.jpg" />
-          <img src="/images/callig-full.jpg" alt="" />
-        </picture>
+        <div class="callig-cell">
+          <picture>
+            <source media="(max-width: 599px)" srcset="/images/callig-mobile.jpg" />
+            <img src="/images/callig-full.jpg" alt="Cursive-script calligraphy handscroll by Zhu Yunming" />
+          </picture>
+        </div>
+        <div class="callig-cell" aria-hidden="true">
+          <picture>
+            <source media="(max-width: 599px)" srcset="/images/callig-mobile.jpg" />
+            <img src="/images/callig-full.jpg" alt="" />
+          </picture>
+        </div>
       </div>
     </div>
 
@@ -70,6 +75,9 @@ const shortDescZh: Record<string, string> = {
           <svg class="icon icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
           <svg class="icon icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
         </button>
+        <button type="button" id="ascii-toggle" class="tbtn" aria-label="Switch to ASCII view" title="ASCII view">
+          <svg class="icon icon-term" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+        </button>
         <button type="button" id="lang-toggle" class="tbtn" aria-label="Toggle language">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
         </button>
@@ -79,7 +87,10 @@ const shortDescZh: Record<string, string> = {
 
   <div class="split">
     <div class="text">
-      <h1 data-en={site.name} data-zh={cjkName}>{site.name}</h1>
+      <div class="title-wrap">
+        <pre class="title-field" aria-hidden="true"></pre>
+        <h1 data-en={site.name} data-zh={cjkName}>{site.name}</h1>
+      </div>
       <p class="meta" data-en="Math @ Stanford · Researcher" data-zh={metaZh}>Math @ Stanford · Researcher</p>
       <p class="contacts">
         <button type="button" class="copy-email" data-email={site.email} data-label={site.email}>{site.email}</button>
@@ -293,7 +304,9 @@ const shortDescZh: Record<string, string> = {
 
       // language toggle and "copied" swap text in place: re-copy next frame
       let recloneFrame = 0;
-      const mo = new MutationObserver(() => {
+      const inField = (n: Node) => !!(n instanceof Element ? n : n.parentElement)?.closest(".title-field");
+      const mo = new MutationObserver((recs) => {
+        if (recs.every((r) => inField(r.target))) return;
         if (!recloneFrame) recloneFrame = requestAnimationFrame(() => { recloneFrame = 0; reclone(); });
       });
       sources.forEach((s) => mo.observe(s, { subtree: true, childList: true, characterData: true }));
@@ -341,6 +354,182 @@ const shortDescZh: Record<string, string> = {
 
       reclone();
     }
+
+    // ---- ASCII title ----------------------------------------------------------
+    // The name is carved out of a fine, moving field of ASCII characters: the
+    // field leaves glyphs out wherever a letter falls and steps down a
+    // density ramp where a letter only grazes a cell, so the letters are
+    // negative space. The field and the name share one font (DM Mono). The
+    // field drifts through clouds of density and flickers, about 14 frames a
+    // second, only while the title is on screen. The real <h1> stays in
+    // place, transparent, for selection and screen readers.
+    // 68 steps of glyph density, light to dark
+    const GRAY = " .'`^\",:;Il!i~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW8%B@$";
+    const glyph = (d: number) => GRAY[Math.min(GRAY.length - 1, Math.max(0, Math.round(d * (GRAY.length - 1))))];
+    const html = document.documentElement;
+    const asciiBtn = document.getElementById("ascii-toggle")!;
+    const titleWrap = document.querySelector(".title-wrap") as HTMLElement;
+    const title = titleWrap.querySelector("h1")!;
+    const fieldEl = titleWrap.querySelector(".title-field") as HTMLElement;
+    // the magnifier's page copy has its own .title-field; write to every one
+    const fields = () => document.querySelectorAll<HTMLElement>(".title-field");
+    const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
+    let asciiOn = false;
+
+    // cell sizes, px: a monospace glyph is 0.6em wide by 1em tall
+    const cellW = () => (innerWidth < 600 ? 1.3 : 2.2);
+    const cellH = () => cellW() / 0.6;
+
+    // periodic value noise on a G x G lattice, so it can drift forever
+    const G = 64;
+    const lattice = Float32Array.from({ length: G * G }, Math.random);
+    const ease = (t: number) => t * t * (3 - 2 * t);
+    const noise = (x: number, y: number) => {
+      const xf = Math.floor(x), yf = Math.floor(y);
+      const tx = ease(x - xf), ty = ease(y - yf);
+      const x0 = ((xf % G) + G) % G, y0 = ((yf % G) + G) % G;
+      const x1 = (x0 + 1) % G, y1 = (y0 + 1) % G;
+      const a = lattice[y0 * G + x0], b = lattice[y0 * G + x1];
+      const c = lattice[y1 * G + x0], d = lattice[y1 * G + x1];
+      return (a + (b - a) * tx) * (1 - ty) + (c + (d - c) * tx) * ty;
+    };
+
+    // where the title's letters sit, as cell coverage 0..1: each character is
+    // redrawn on a small canvas at its on-screen spot in its own font, then
+    // sampled 3x3 per cell
+    let cols = 0, rows = 0;
+    let cov = new Float32Array(0);
+    const measure = () => {
+      const W = titleWrap.clientWidth, H = titleWrap.clientHeight;
+      cols = Math.max(1, Math.round(W / cellW()));
+      rows = Math.max(1, Math.round(H / cellH()));
+      const S = 3;
+      const c = document.createElement("canvas");
+      c.width = cols * S;
+      c.height = rows * S;
+      const ctx = c.getContext("2d", { willReadFrequently: true })!;
+      ctx.setTransform((cols * S) / W, 0, 0, (rows * S) / H, 0, 0);
+      const o = titleWrap.getBoundingClientRect();
+      const cs = getComputedStyle(title);
+      ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+      // glyphs overhang their cells a little, so widen the carve by about a
+      // row each side; thin strokes on small screens would close up otherwise
+      ctx.lineWidth = parseFloat(cs.fontSize) * 0.05 + cellH() * 0.8;
+      const range = document.createRange();
+      const walker = document.createTreeWalker(title, NodeFilter.SHOW_TEXT);
+      for (let node = walker.nextNode() as Text | null; node; node = walker.nextNode() as Text | null) {
+        const t = node.data;
+        for (let i = 0; i < t.length; ) {
+          const ch = String.fromCodePoint(t.codePointAt(i)!);
+          range.setStart(node, i);
+          range.setEnd(node, i + ch.length);
+          i += ch.length;
+          const r = range.getClientRects()[0];
+          if (!r || !ch.trim()) continue;
+          const y = r.top - o.top + ctx.measureText(ch).fontBoundingBoxAscent;
+          ctx.fillText(ch, r.left - o.left, y);
+          ctx.strokeText(ch, r.left - o.left, y);
+        }
+      }
+      const d = ctx.getImageData(0, 0, c.width, c.height).data;
+      cov = new Float32Array(cols * rows);
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          let a = 0;
+          for (let sy = 0; sy < S; sy++) for (let sx = 0; sx < S; sx++) a += d[((y * S + sy) * c.width + x * S + sx) * 4 + 3];
+          cov[y * cols + x] = Math.min(1, (a / (S * S * 255)) * 1.6);
+        }
+      }
+    };
+
+    // one frame of the field at time t (seconds)
+    let scale = "";
+    const render = (t: number) => {
+      const n = cols * rows;
+      let out = "";
+      // two layers of cloud drifting in different directions, cells are
+      // 0.6x as wide as tall so x is squeezed to keep the clouds round
+      const ax = t * 1.1, ay = t * 0.35, bx = -t * 0.7, by = t * 0.9;
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const i = y * cols + x;
+          const c = cov[i];
+          let ch: string;
+          if (c > 0.92) ch = " ";
+          else {
+            const cloud = 0.65 * noise(x * 0.6 / 22 + ax, y / 22 + ay) + 0.35 * noise(x * 0.6 / 7 + bx, y / 7 + by);
+            // open field: the dense end of the ramp, breathing with the clouds
+            let dens = 0.62 + 0.38 * cloud + (Math.random() - 0.5) * 0.12;
+            // fuzzy edge: half-covered cells fade down the ramp
+            if (c >= 0.04) dens *= 1 - c;
+            ch = glyph(dens);
+          }
+          out += ch;
+        }
+        if (y < rows - 1) out += "\n";
+      }
+      fields().forEach((f) => (f.textContent = out));
+      if (!scale) {
+        const w = fieldEl.offsetWidth, h = fieldEl.offsetHeight;
+        if (w && h) scale = `scale(${titleWrap.clientWidth / w}, ${titleWrap.clientHeight / h})`;
+      }
+      fields().forEach((f) => (f.style.transform = scale));
+    };
+
+    // animation: ~14 fps, only while the title is on screen and the tab is
+    // visible (rAF pauses in background tabs); one still frame under reduced motion
+    let raf = 0, last = 0, visible = true;
+    const t0 = performance.now();
+    const tick = (now: number) => {
+      raf = 0;
+      if (!asciiOn) return;
+      if (now - last > 70) { last = now; render((now - t0) / 1000); }
+      if (visible && !reduceMotion.matches) raf = requestAnimationFrame(tick);
+    };
+    const start = () => { if (!raf && asciiOn) raf = requestAnimationFrame(tick); };
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible) start(); }).observe(titleWrap);
+    reduceMotion.addEventListener("change", start);
+
+    const rebuild = () => {
+      if (!asciiOn) return;
+      measure();
+      scale = "";
+      last = 0;
+      start();
+    };
+    let rebuildTimer = 0;
+    const scheduleRebuild = () => {
+      if (!asciiOn) return;
+      clearTimeout(rebuildTimer);
+      rebuildTimer = window.setTimeout(rebuild, 120);
+    };
+    // the carve follows the box (resize, wrapping) and the words (language)
+    new ResizeObserver(scheduleRebuild).observe(titleWrap);
+    new MutationObserver(scheduleRebuild).observe(title, { subtree: true, childList: true, characterData: true });
+
+    const setAscii = (on: boolean) => {
+      asciiOn = on;
+      html.classList.toggle("ascii-mode", on);
+      const label = on ? "Switch to the normal view" : "Switch to ASCII view";
+      asciiBtn.setAttribute("aria-label", label);
+      asciiBtn.setAttribute("aria-pressed", String(on));
+      asciiBtn.title = label;
+      try {
+        if (on) localStorage.setItem("ascii", "1");
+        else localStorage.removeItem("ascii");
+      } catch {}
+      if (on) document.fonts.ready.then(rebuild);
+      else {
+        cancelAnimationFrame(raf);
+        raf = 0;
+        // drop the big text node so the magnifier's copy stays light
+        fields().forEach((f) => (f.textContent = ""));
+      }
+    };
+    asciiBtn.addEventListener("click", () => setAscii(!asciiOn));
+    let saved: string | null = null;
+    try { saved = localStorage.getItem("ascii"); } catch {}
+    setAscii(saved !== null);
 
     // dark mode
     const darkBtn = document.getElementById("dark-toggle");
@@ -453,11 +642,7 @@ const shortDescZh: Record<string, string> = {
   @media (prefers-reduced-motion: reduce) {
     .callig-track { animation: none; transform: translateX(-50%); }
   }
-  .callig-band picture {
-    display: block;
-    flex: none;
-    width: 50%;
-  }
+  .callig-band picture { display: block; }
   .callig-band img {
     display: block;
     width: 100%;
@@ -544,7 +729,8 @@ const shortDescZh: Record<string, string> = {
 
   .split {
     display: grid;
-    grid-template-columns: 1fr;
+    /* minmax(0, …) so wide ASCII-view content can't widen the page */
+    grid-template-columns: minmax(0, 1fr);
   }
 
   /* no max-width cap: the column should use whatever room is left
@@ -636,6 +822,83 @@ const shortDescZh: Record<string, string> = {
   .proj .tech { margin-top: 0.6rem; font-size: 0.75rem; color: var(--muted); }
   .proj a { color: var(--fg); text-decoration: underline; text-underline-offset: 2px; }
   .proj a:hover { color: var(--muted); }
+
+  /* ---- ASCII title ---------------------------------------------------
+     The name is carved out of a moving field of ASCII glyphs (see the
+     script); the rest of the page keeps its normal look, set in the same
+     mono font as the glyphs. */
+  .callig-cell {
+    position: relative;
+    flex: none;
+    width: 50%;
+    overflow: hidden;
+  }
+  .title-field { display: none; }
+
+  :global(html.ascii-mode body) {
+    font-family: "DM Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    letter-spacing: 0;
+  }
+  :global(html.ascii-mode) .meta { text-transform: none; letter-spacing: 0; }
+  /* DM Mono stops at 500; use it for bold instead of a faked 700 */
+  :global(html.ascii-mode) .text :is(h2, h3, strong, b) { font-weight: 500; }
+
+  :global(html.ascii-mode) .title-wrap {
+    position: relative;
+    width: fit-content;
+    max-width: 100%;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  /* clear the scroll's credit line, which floats over this spot */
+  @media (min-width: 600px) {
+    :global(html.ascii-mode) .title-wrap { margin-top: 1.5rem; }
+  }
+  /* the field and the name share one face and weight */
+  :global(html.ascii-mode) h1,
+  :global(html.ascii-mode) .title-field {
+    font-family: "DM Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-weight: 500;
+  }
+  :global(html.ascii-mode) h1 {
+    /* large enough on phones that each letter spans ~15 rows of glyphs */
+    font-size: clamp(3rem, 14vw, 7.5rem);
+    letter-spacing: -0.04em;
+    line-height: 1;
+    padding: 0.1em 0.16em 0.06em;
+    /* the field leaves the letters out; the real text stays for selection
+       and screen readers but paints nothing */
+    color: transparent;
+  }
+  :global(html.ascii-mode) h1::selection { color: transparent; }
+
+  /* a <pre> laid out at 10px, glyphs set a little tighter than their cells
+     so neighbours touch, then stretched onto the title's box */
+  :global(html.ascii-mode) .title-field {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    margin: 0;
+    font-size: 10px;
+    line-height: 7px;
+    letter-spacing: -1px;
+    color: var(--fg);
+    white-space: pre;
+    transform-origin: 0 0;
+    pointer-events: none;
+    user-select: none;
+    /* mobile browsers inflate text in wide blocks, which breaks the grid */
+    -webkit-text-size-adjust: none;
+    text-size-adjust: none;
+  }
+
+  :global(html.ascii-mode) .tbtn#ascii-toggle,
+  :global(html.ascii-mode) .tbtn[aria-pressed="true"] {
+    background: var(--fg);
+    color: var(--bg);
+  }
 
   :global(:focus-visible) { outline: 2px solid var(--fg); outline-offset: 3px; }
 
